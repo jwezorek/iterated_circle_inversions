@@ -41,7 +41,7 @@ std::optional<ici::circle> ici::circle_through_three_points(
     auto z1 = pt_to_z(pt1), z2 = pt_to_z(pt2), z3 = pt_to_z(pt3);
     auto w = (z3 - z1) / (z2 - z1);
 
-    if (w.imag() == 0) {
+    if (std::abs(w.imag()) < std::numeric_limits<float>::epsilon()) {
         return {}; // the three points are colinear
     }
 
@@ -73,27 +73,43 @@ ici::point ici::operator*(double lhs, const ici::point& rhs) {
     };
 }
 
-ici::point ici::invert(const circle& c, const point& pt) {
+std::optional<ici::point> ici::invert(const circle& c, const point& pt) {
     auto x0 = c.loc.x;
     auto y0 = c.loc.y;
     auto k = c.radius;
     auto x_diff = pt.x - x0;
     auto y_diff = pt.y - y0;
     auto denom = x_diff * x_diff + y_diff * y_diff;
+    if (std::abs(denom) < std::numeric_limits<float>::epsilon()) {
+        return {};
+    }
 
-    return {
+    return point{
         x0 + (k * k * x_diff) / denom,
         y0 + (k * k * y_diff) / denom
     };
 }
 
-ici::circle ici::invert(const circle& c, const circle& invertee)
+std::optional<ici::circle> ici::invert(const circle& c, const circle& invertee)
 {
-    auto north = invert(c, invertee.loc + point{0, invertee.radius});
-    auto west = invert(c, invertee.loc + point{ -invertee.radius, 0 });
-    auto east = invert(c, invertee.loc + point{ invertee.radius, 0 });
+    std::array<std::optional<point>, 4> ary = { {
+        invert(c, invertee.loc + point{0, invertee.radius}),    //north
+        invert(c, invertee.loc + point{ -invertee.radius, 0 }), //west
+        invert(c, invertee.loc + point{ invertee.radius, 0 }),  //east
+        invert(c, invertee.loc + point{ 0, -invertee.radius })  //south
+    } };
     
-    return *circle_through_three_points(north, west, east);
+    auto pts = ary | rv::filter(
+            [](auto&& p) { return p.has_value(); }
+        ) | rv::transform(
+            [](auto&& p) { return p.value(); }
+        ) | r::to<std::vector>();
+
+    if (pts.size() < 3) {
+        throw std::runtime_error("TODO: implement more robust circle inversion");
+    }
+    
+    return circle_through_three_points(pts[0], pts[1], pts[2]);
 }
 
 double ici::distance(const point& pt1, const point& pt2)
@@ -115,8 +131,16 @@ std::vector<ici::circle> ici::do_one_round(const std::vector<circle>& circles) {
 	for (const auto& [c1, c2] : two_combinations(circles)) {
         new_circles.insert(c1);
         new_circles.insert(c2);
-        new_circles.insert( invert(c1, c2) );
-        new_circles.insert( invert(c2, c1) );
+
+        auto c = invert(c1, c2);
+        auto d = invert(c2, c1);
+
+        if (c) {
+            new_circles.insert(*c);
+        }
+        if (d) {
+            new_circles.insert(*d);
+        }
 	}
     return new_circles.to_vector();
 }

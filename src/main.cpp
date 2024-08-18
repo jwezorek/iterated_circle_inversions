@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
 			circles = ici::do_one_round(circles);
 		}
 
-		to_svg(options->output, circles, 10, 10000);
+		to_svg(options->output, circles, 10, 100);
 
 		return 0;
 

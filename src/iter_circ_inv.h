@@ -33,8 +33,8 @@ namespace ici {
     std::optional<circle> circle_through_three_points(
         const point& pt1, const point& pt2, const point& pt3);
 
-    point invert(const circle& c, const point& pt);
-    circle invert(const circle& c, const circle& invertee);
+    std::optional<point> invert(const circle& c, const point& pt);
+    std::optional<circle> invert(const circle& c, const circle& invertee);
     double distance(const point& pt1, const point& pt2);
 
     std::vector<circle> do_one_round(const std::vector<circle>& circles);
