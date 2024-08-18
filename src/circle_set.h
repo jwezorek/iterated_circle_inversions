@@ -7,7 +7,7 @@
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/register/point.hpp>
 
-namespace cir {
+namespace ici {
 
     namespace detail {
         using vec3 = boost::geometry::model::point<double, 3, boost::geometry::cs::cartesian>;

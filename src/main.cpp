@@ -40,12 +40,12 @@ int main(int argc, char* argv[]) {
 			return -1;
 		}
 
-		auto circles = cir::parse(
-			cir::file_to_string_vector(options->input)
+		auto circles = ici::parse(
+			ici::file_to_string_vector(options->input)
 		);
 
 		for (int i : rv::iota(0, options->iterations)) {
-			circles = cir::do_one_round(circles);
+			circles = ici::do_one_round(circles);
 		}
 
 		to_svg(options->output, circles, 10, 10000);

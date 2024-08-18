@@ -8,7 +8,7 @@
 
 /*------------------------------------------------------------------------------------------------*/
 
-namespace cir {
+namespace ici {
 
     
     std::vector<circle> parse(const std::vector<std::string>& inp);

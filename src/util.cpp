@@ -22,7 +22,7 @@ namespace {
         return ret;
     }
 
-    cir::circle to_circle(const std::string& str) {
+    ici::circle to_circle(const std::string& str) {
         auto pieces = split(str);
         if (pieces.size() != 3) {
             throw std::runtime_error("invalid input");
@@ -38,8 +38,8 @@ namespace {
         };
     }
 
-    cir::rectangle bounds(const std::vector<cir::circle>& circles) {
-        auto circle_bounds = circles | rv::transform(cir::bounds) | r::to<std::vector>();
+    ici::rectangle bounds(const std::vector<ici::circle>& circles) {
+        auto circle_bounds = circles | rv::transform(ici::bounds) | r::to<std::vector>();
 
         auto x1 = r::min(circle_bounds | rv::transform([](auto&& r) { return r.min.x; }));
         auto y1 = r::min(circle_bounds | rv::transform([](auto&& r) { return r.min.y; }));
@@ -55,7 +55,7 @@ namespace {
     }
 }
 
-std::vector<std::string> cir::file_to_string_vector(const std::string& filename)
+std::vector<std::string> ici::file_to_string_vector(const std::string& filename)
 {
     std::vector<std::string> v;
 
@@ -71,19 +71,20 @@ std::vector<std::string> cir::file_to_string_vector(const std::string& filename)
     return v;
 }
 
-void cir::to_svg(const std::string& fname, const std::vector<circle>& inp_circles, 
+void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circles, 
         double padding, double scale) {
 
     auto circles = inp_circles | rv::transform(
             [k = scale](auto&& c) {
-                return cir::scale(c, k);
+                return ici::scale(c, k);
             }
         ) | r::to<std::vector>();
     auto dimensions = pad(::bounds(circles), padding);
     std::stringstream ss;
 
     ss << std::format(
-        "<svg viewBox=\"{} {} {} {}\" xmlns=\"http://www.w3.org/2000/svg\">\n",
+        "<svg style=\"{}\" viewBox=\"{} {} {} {}\" xmlns=\"http://www.w3.org/2000/svg\">\n",
+        "stroke-width: 1px; background-color: white;",
         dimensions.min.x,
         dimensions.min.y,
         dimensions.max.x - dimensions.min.x,
@@ -102,7 +103,7 @@ void cir::to_svg(const std::string& fname, const std::vector<circle>& inp_circle
     string_to_file(fname, ss.str());
 }
 
-std::vector<cir::circle> cir::parse(const std::vector<std::string>& inp)
+std::vector<ici::circle> ici::parse(const std::vector<std::string>& inp)
 {
     return inp | rv::transform(
         to_circle

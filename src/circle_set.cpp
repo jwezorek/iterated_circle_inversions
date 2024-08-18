@@ -7,12 +7,12 @@ namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 
 namespace {
-    using box = cir::detail::box;
-    using vec3 = cir::detail::vec3;
+    using box = ici::detail::box;
+    using vec3 = ici::detail::vec3;
 
-    using rtree = cir::detail::rtree;
+    using rtree = ici::detail::rtree;
 
-    vec3 to_vec3(const cir::circle& c) {
+    vec3 to_vec3(const ici::circle& c) {
         return {
             c.loc.x,
             c.loc.y,
@@ -49,7 +49,7 @@ namespace {
         );
     }
 
-    cir::circle to_circle(const vec3& v) {
+    ici::circle to_circle(const vec3& v) {
         return {
             {bg::get<0>(v), bg::get<1>(v)},
             bg::get<2>(v)
@@ -57,11 +57,11 @@ namespace {
     }
 }
 
-cir::circle_set::circle_set(double eps) : eps_(eps)
+ici::circle_set::circle_set(double eps) : eps_(eps)
 {
 }
 
-void cir::circle_set::insert(const circle& c) {
+void ici::circle_set::insert(const circle& c) {
     std::vector<vec3> results;
     auto v = to_vec3(c);
     tree_.query(bgi::intersects(pad_vec3(v, eps_)), std::back_inserter(results));
@@ -76,6 +76,6 @@ void cir::circle_set::insert(const circle& c) {
     tree_.insert(v);
 }
 
-std::vector<cir::circle> cir::circle_set::to_vector() const {
+std::vector<ici::circle> ici::circle_set::to_vector() const {
     return tree_ | rv::transform(to_circle) | r::to<std::vector>();
 }

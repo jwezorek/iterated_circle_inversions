@@ -13,28 +13,28 @@ namespace rv = std::ranges::views;
 
 namespace {
 
-    std::complex<double> pt_to_z(const cir::point& pt) {
+    std::complex<double> pt_to_z(const ici::point& pt) {
         auto [x, y] = pt;
         return { x,y };
     }
 
 }
 
-cir::rectangle cir::bounds(const circle& c) {
+ici::rectangle ici::bounds(const circle& c) {
     return {
         {c.loc.x - c.radius, c.loc.y - c.radius},
         {c.loc.x + c.radius, c.loc.y + c.radius}
     };
 }
 
-cir::circle cir::scale(const circle& c, double k) {
+ici::circle ici::scale(const circle& c, double k) {
     return {
         {k * c.loc.x, k * c.loc.y},
         k * c.radius
     };
 }
 
-std::optional<cir::circle> cir::circle_through_three_points(
+std::optional<ici::circle> ici::circle_through_three_points(
         const point& pt1, const point& pt2, const point& pt3) {
 
     using namespace std::complex_literals;
@@ -49,31 +49,31 @@ std::optional<cir::circle> cir::circle_through_three_points(
     auto c = (z2 - z1) * (w - magnitude_w * magnitude_w) / (2i * w.imag()) + z1;
     auto r = std::abs(z1 - c);
 
-    return cir::circle{ {c.real(), c.imag()}, r };
+    return ici::circle{ {c.real(), c.imag()}, r };
 }
 
-cir::point cir::operator+(const cir::point& lhs, const cir::point& rhs) {
+ici::point ici::operator+(const ici::point& lhs, const ici::point& rhs) {
     return {
         lhs.x + rhs.x,
         lhs.y + rhs.y
     };
 }
 
-cir::point cir::operator-(const cir::point& lhs, const cir::point& rhs) {
+ici::point ici::operator-(const ici::point& lhs, const ici::point& rhs) {
     return {
         lhs.x - rhs.x,
         lhs.y - rhs.y
     };
 }
 
-cir::point cir::operator*(double lhs, const cir::point& rhs) {
+ici::point ici::operator*(double lhs, const ici::point& rhs) {
     return {
         lhs * rhs.x,
         lhs * rhs.y
     };
 }
 
-cir::point cir::invert(const circle& c, const point& pt) {
+ici::point ici::invert(const circle& c, const point& pt) {
     auto x0 = c.loc.x;
     auto y0 = c.loc.y;
     auto k = c.radius;
@@ -87,7 +87,7 @@ cir::point cir::invert(const circle& c, const point& pt) {
     };
 }
 
-cir::circle cir::invert(const circle& c, const circle& invertee)
+ici::circle ici::invert(const circle& c, const circle& invertee)
 {
     auto north = invert(c, invertee.loc + point{0, invertee.radius});
     auto west = invert(c, invertee.loc + point{ -invertee.radius, 0 });
@@ -96,21 +96,21 @@ cir::circle cir::invert(const circle& c, const circle& invertee)
     return *circle_through_three_points(north, west, east);
 }
 
-double cir::distance(const point& pt1, const point& pt2)
+double ici::distance(const point& pt1, const point& pt2)
 {
     auto x_diff = pt1.x - pt2.x;
     auto y_diff = pt1.y - pt2.y;
     return std::sqrt(x_diff * x_diff + y_diff * y_diff);
 }
 
-cir::rectangle cir::pad(const cir::rectangle& r, double padding) {
+ici::rectangle ici::pad(const ici::rectangle& r, double padding) {
     return {
         { r.min.x - padding, r.min.y - padding },
         { r.max.x + padding, r.max.y + padding }
     };
 }
 
-std::vector<cir::circle> cir::do_one_round(const std::vector<circle>& circles) {
+std::vector<ici::circle> ici::do_one_round(const std::vector<circle>& circles) {
     circle_set new_circles(0.001);
 	for (const auto& [c1, c2] : two_combinations(circles)) {
         new_circles.insert(c1);
