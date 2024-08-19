@@ -2,9 +2,12 @@
 #include <optional>
 #include <string>
 #include <ranges>
+#include <numbers>
+#include <filesystem>
 #include "iter_circ_inv.h"
 #include "util.h"
 
+namespace fs = std::filesystem;
 namespace r = std::ranges;
 namespace rv = std::ranges::views;
 
@@ -33,7 +36,6 @@ namespace {
 int main(int argc, char* argv[]) {
 
 	try {
-
 		auto options = parse_cmd_line(argc, argv);
 		if (!options) {
 			std::println("usage: circles [inp file] [out file] [num iterations]");
@@ -44,10 +46,13 @@ int main(int argc, char* argv[]) {
 			ici::file_to_string_vector(options->input)
 		);
 
+		std::println("inverting {}...", fs::path(options->input).filename().string());
 		for (int i : rv::iota(0, options->iterations)) {
+			std::print("  iteration {}: {} circles ->", i + 1, circles.size());
 			circles = ici::do_one_round(circles);
+			std::println(" {} circles...", circles.size());
 		}
-
+		std::println("complete.\ngenerating {} ...", fs::path(options->output).filename().string());
 		to_svg(options->output, circles, 10, 100);
 
 		return 0;

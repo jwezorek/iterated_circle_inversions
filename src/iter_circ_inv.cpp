@@ -106,7 +106,7 @@ std::optional<ici::circle> ici::invert(const circle& c, const circle& invertee)
         ) | r::to<std::vector>();
 
     if (pts.size() < 3) {
-        throw std::runtime_error("TODO: implement more robust circle inversion");
+        return {};
     }
     
     return circle_through_three_points(pts[0], pts[1], pts[2]);
