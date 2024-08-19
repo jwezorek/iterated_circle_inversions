@@ -41,7 +41,7 @@ namespace {
     }
 }
 
-ici::rectangle ici::bounds(const circle& c) {
+ici::rectangle ici::circle_bounds(const circle& c) {
     return {
         {c.loc.x - c.radius, c.loc.y - c.radius},
         {c.loc.x + c.radius, c.loc.y + c.radius}
@@ -145,6 +145,17 @@ ici::rectangle ici::pad(const ici::rectangle& r, double padding) {
         { r.min.x - padding, r.min.y - padding },
         { r.max.x + padding, r.max.y + padding }
     };
+}
+
+ici::rectangle ici::circles_bounds(const std::vector<ici::circle>& circles) {
+    auto bounds = circles | rv::transform(circle_bounds) | r::to<std::vector>();
+
+    auto x1 = r::min(bounds | rv::transform([](auto&& r) { return r.min.x; }));
+    auto y1 = r::min(bounds | rv::transform([](auto&& r) { return r.min.y; }));
+    auto x2 = r::max(bounds | rv::transform([](auto&& r) { return r.max.x; }));
+    auto y2 = r::max(bounds | rv::transform([](auto&& r) { return r.max.y; }));
+
+    return { {x1,y1},{x2,y2} };
 }
 
 std::vector<ici::circle> ici::perform_inversions(const ici::input& inp)

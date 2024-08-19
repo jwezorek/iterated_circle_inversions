@@ -1,25 +1,143 @@
 #include "rasterize.h"
 #include "input.h"
+#include "iter_circ_inv.h"
 #include <opencv2/opencv.hpp>
+#include <ranges>
 
-void ici::rasterize(const std::vector<circle>& circles, const input& inp)
-{
-    int width = 640;
-    int height = 480;
+namespace r = std::ranges;
+namespace rv = std::ranges::views;
 
-    cv::Mat image(height, width, CV_8UC3, cv::Scalar(0, 0, 0));
+namespace {
 
-    cv::Point center(width / 2, height / 2);
-    int radius = 100;
+    using point = ici::point;
 
-    cv::Scalar color(0, 255, 0); // Green color
+    cv::Vec3b to_cv_color(const ici::color& color) {
+        return {
+            color.r,
+            color.g,
+            color.b
+        };
+    }
 
-    // Define the thickness of the circle border (negative value means filled circle)
-    int thickness = -1; // Filled circle
+    /*
+    cv::Mat modulo(const cv::Mat& mat, uchar modulus) {
+        cv::Mat result = mat.clone();
 
-    // Draw the circle onto the image
-    cv::circle(image, center, radius, color, thickness);
+        for (int y = 0; y < result.rows; y++) {
+            for (int x = 0; x < result.cols; x++) {
+                result.at<uchar>(y, x) = mat.at<uchar>(y,x) % modulus;
 
-    // Save the image to the specified path
-    cv::imwrite(inp.out_file, image);
+                if (result.at<uchar>(y, x) >= 2) {
+                    int aaa;
+                    aaa = 5;
+                }
+            }
+        }
+
+        return result;
+    }
+    */
+    void modulo_in_place(cv::Mat& mat, uchar modulus) {
+        for (int y = 0; y < mat.rows; y++) {
+            for (int x = 0; x < mat.cols; x++) {
+                mat.at<uchar>(y, x) %= modulus;
+            }
+        }
+    }
+
+    cv::Mat apply_color_table(const cv::Mat& indexMat, const std::vector<cv::Vec3b>& colors) {
+        cv::Mat colorMat(indexMat.size(), CV_8UC3);
+
+        for (int y = 0; y < indexMat.rows; y++) {
+            for (int x = 0; x < indexMat.cols; x++) {
+                uchar index = indexMat.at<uchar>(y, x);
+                colorMat.at<cv::Vec3b>(y, x) = colors[index];
+            }
+        }
+
+        return colorMat;
+    }
+
+    std::tuple<int, int, double> image_metrics(
+                ici::point min_pt, ici::point max_pt, int resolution)  {
+            double wd = max_pt.x - min_pt.y;
+            double hgt = max_pt.y - min_pt.y;
+            double cols = 0.0;
+            double rows = 0.0;
+            double log_to_image = 0.0;
+
+            if (wd > hgt) {
+                cols = resolution;
+                rows = std::ceil((hgt * static_cast<double>(cols)) / wd);
+                log_to_image = static_cast<double>(cols) / wd;
+            } else {
+                rows = resolution;
+                cols = std::ceil((wd * static_cast<double>(rows)) / hgt);
+                log_to_image = static_cast<double>(rows) / hgt;
+            }
+
+            return { static_cast<int>(cols), static_cast<int>(rows), log_to_image };
+        }
+
+
+    class modulo_canvas {
+        cv::Mat img_;
+        cv::Mat mask_;
+        uchar modulus_;
+
+    public:
+        modulo_canvas(int cols, int rows, int modulus) :
+                modulus_(static_cast<uchar>(modulus)) {
+            img_ = cv::Mat::zeros(rows, cols, CV_8UC1);
+            mask_ = cv::Mat::zeros(rows, cols, CV_8UC1);
+        }
+
+        void add_circle(int x, int y, int radius) {
+            cv::circle(mask_, cv::Point(x, y), radius, cv::Scalar(1), -1);
+
+            int x_start = std::max(x - radius, 0);
+            int y_start = std::max(y - radius, 0);
+            int x_end = std::min(x + radius, mask_.cols);
+            int y_end = std::min(y + radius, mask_.rows);
+
+            cv::Rect roi(x_start, y_start, x_end - x_start, y_end - y_start);
+            cv::Mat mat_roi = img_(roi);
+            cv::Mat temp_roi = mask_(roi);
+            cv::add(mat_roi, temp_roi, mat_roi);
+            modulo_in_place(mat_roi, modulus_);
+
+            for (int y = 0; y < img_.rows; y++) {
+                for (int x = 0; x < img_.cols; x++) {
+                    if (img_.at<uchar>(y, x) >= 2) {
+                        int aaa;
+                        aaa = 5;
+                    }
+                }
+            }
+
+            cv::circle(mask_, cv::Point(x, y), radius, cv::Scalar(0), -1);
+
+        }
+
+        cv::Mat image() const {
+            return img_;
+        }
+    };
+}
+
+void ici::rasterize(const std::string& outp, 
+        const std::vector<circle>& circles, const ici::raster_output_settings& settings) {
+    auto rect = circles_bounds(circles);
+    auto [cols, rows, logical_to_image] = image_metrics(rect.min, rect.max, settings.resolution);
+    int num_colors = static_cast<int>( settings.color_tbl.size() );
+    modulo_canvas canvas(cols, rows, num_colors);
+    for (auto&& circle : circles) {
+        int x = static_cast<int>(std::round((circle.loc.x - rect.min.x) * logical_to_image));
+        int y = static_cast<int>(std::round((circle.loc.y - rect.min.y) * logical_to_image));
+        int r = static_cast<int>(std::round(circle.radius * logical_to_image));
+        canvas.add_circle(x, y, r);
+    }
+    auto palette = settings.color_tbl | rv::transform(to_cv_color) | r::to<std::vector>();
+    auto image = apply_color_table(canvas.image(), palette);
+    cv::imwrite(outp, image);
 }

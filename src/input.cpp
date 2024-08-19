@@ -9,14 +9,20 @@ namespace r = std::ranges;
 namespace rv = std::ranges::views;
 
 /*------------------------------------------------------------------------------------------------*/
+
 namespace {
     using json = nlohmann::json;
 
     constexpr auto k_epsilon = 0.0001;
     constexpr auto k_num_iterations = 2;
+    constexpr auto k_default_res = 2048;
+    constexpr auto k_default_aa_level = 0;
     constexpr auto k_default_out_fname = "circle_inv.svg"; 
     constexpr auto k_eps_field = "eps";
     constexpr auto k_iters_field = "iterations";
+    constexpr auto k_output_res_field = "output_resolution";
+    constexpr auto k_antialias_field = "antialiasing_level";
+
     constexpr auto k_out_file = "out-file";
 
     std::optional<json> file_to_json(const std::string& inp_file) {
@@ -78,6 +84,28 @@ namespace {
         return out_path;
     }
 
+    std::optional<ici::raster_output_settings> get_raster_output_settings(
+            std::string& outfile, const json& json) {
+        if (fs::path(outfile).extension() != ".png") {
+            return {};
+        }
+
+        std::vector<ici::color> colors = {
+            {0,0,0},
+            {255,255,255}
+        };
+
+        return ici::raster_output_settings{
+            json.contains(k_output_res_field) ?
+                json[k_output_res_field].get<int>() :
+                k_default_res,
+            json.contains(k_antialias_field) ?
+                json[k_antialias_field].get<int>() :
+                k_default_aa_level,
+            colors
+        };
+    }
+
     std::optional<const ici::input> json_to_input(
             const std::string& inp_file, const json& json) {
 
@@ -99,7 +127,7 @@ namespace {
             .eps = get_eps( json ),
             .iterations = get_num_iterations( json ),
             .out_file = outp,
-            .rasterize = fs::path(outp).extension() == ".png"
+            .raster = get_raster_output_settings(outp, json)
         };
     }
 }

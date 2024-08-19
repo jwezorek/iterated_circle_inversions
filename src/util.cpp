@@ -38,17 +38,6 @@ namespace {
         };
     }
 
-    ici::rectangle bounds(const std::vector<ici::circle>& circles) {
-        auto circle_bounds = circles | rv::transform(ici::bounds) | r::to<std::vector>();
-
-        auto x1 = r::min(circle_bounds | rv::transform([](auto&& r) { return r.min.x; }));
-        auto y1 = r::min(circle_bounds | rv::transform([](auto&& r) { return r.min.y; }));
-        auto x2 = r::max(circle_bounds | rv::transform([](auto&& r) { return r.max.x; }));
-        auto y2 = r::max(circle_bounds | rv::transform([](auto&& r) { return r.max.y; }));
-
-        return { {x1,y1},{x2,y2} };
-    }
-
     void string_to_file(const std::string& fname, const std::string& contents) {
         std::ofstream file( fname );
         file << contents;
@@ -79,7 +68,7 @@ void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circle
                 return ici::scale(c, k);
             }
         ) | r::to<std::vector>();
-    auto dimensions = pad(::bounds(circles), padding);
+    auto dimensions = pad(circles_bounds(circles), padding);
     std::stringstream ss;
 
     ss << std::format(

@@ -36,10 +36,10 @@ int main(int argc, char* argv[]) {
 			return -1;
 		}
 		auto circles = ici::perform_inversions( *input );
-		if (!input->rasterize) {
+		if (!input->raster) {
 			to_svg(input->out_file, circles, 10, 100);
 		} else {
-			ici::rasterize( circles, *input );
+			ici::rasterize(input->out_file, circles, *input->raster);
 		}
 
 		return 0;

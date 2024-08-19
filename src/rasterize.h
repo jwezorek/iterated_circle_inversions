@@ -3,10 +3,13 @@
 #include "iter_circ_inv.h"
 #include <vector>
 
+/*------------------------------------------------------------------------------------------------*/
+
 namespace ici {
 
-    struct input;
+    struct raster_output_settings;
 
-    void rasterize(const std::vector<circle>& circles, const ici::input& settings);
+    void rasterize(const std::string& outp, const std::vector<circle>& circles, 
+        const ici::raster_output_settings& settings);
 
 }
