@@ -14,6 +14,7 @@ namespace ici {
         double eps;
         int iterations;
         std::string out_file;
+        bool rasterize;
     };
 
     std::optional<const input> parse_input(const std::string& inp_file);

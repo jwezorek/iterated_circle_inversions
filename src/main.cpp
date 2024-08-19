@@ -7,6 +7,7 @@
 #include "iter_circ_inv.h"
 #include "input.h"
 #include "util.h"
+#include "rasterize.h"
 
 namespace fs = std::filesystem;
 namespace r = std::ranges;
@@ -16,7 +17,7 @@ namespace rv = std::ranges::views;
 
 namespace {
 
-	std::optional<ici::input> parse_cmd_line(int argc, char* argv[]) {
+	std::optional<const ici::input> parse_cmd_line(int argc, char* argv[]) {
 		if (argc != 2) {
 			return {};
 		}
@@ -34,9 +35,12 @@ int main(int argc, char* argv[]) {
 			);
 			return -1;
 		}
-
 		auto circles = ici::perform_inversions( *input );
-		to_svg(input->out_file, circles, 10, 100);
+		if (!input->rasterize) {
+			to_svg(input->out_file, circles, 10, 100);
+		} else {
+			ici::rasterize( circles, *input );
+		}
 
 		return 0;
 

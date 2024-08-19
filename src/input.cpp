@@ -12,13 +12,12 @@ namespace rv = std::ranges::views;
 namespace {
     using json = nlohmann::json;
 
-    constexpr double k_epsilon = 0.0001;
-    constexpr int k_num_iterations = 2;
+    constexpr auto k_epsilon = 0.0001;
+    constexpr auto k_num_iterations = 2;
     constexpr auto k_default_out_fname = "circle_inv.svg"; 
     constexpr auto k_eps_field = "eps";
     constexpr auto k_iters_field = "iterations";
     constexpr auto k_out_file = "out-file";
-
 
     std::optional<json> file_to_json(const std::string& inp_file) {
         std::ifstream file(inp_file);
@@ -90,6 +89,8 @@ namespace {
             return {};
         }
 
+        auto outp = get_out_file(json, inp_file);
+
         return ici::input{
             .fname = fs::path(inp_file).filename().string(),
             .circles = json_to_circles( 
@@ -97,7 +98,8 @@ namespace {
             ),
             .eps = get_eps( json ),
             .iterations = get_num_iterations( json ),
-            .out_file = get_out_file( json, inp_file )
+            .out_file = outp,
+            .rasterize = fs::path(outp).extension() == ".png"
         };
     }
 }

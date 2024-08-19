@@ -8,7 +8,7 @@
 
 namespace ici {
 
-    class input;
+    struct input;
 
     struct point {
         double x;
