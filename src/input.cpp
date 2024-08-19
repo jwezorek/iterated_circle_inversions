@@ -79,7 +79,7 @@ namespace {
         return out_path;
     }
 
-    std::optional<const ici::settings> json_to_settings(
+    std::optional<const ici::input> json_to_input(
             const std::string& inp_file, const json& json) {
 
         if (!json.is_object()) {
@@ -90,7 +90,7 @@ namespace {
             return {};
         }
 
-        return ici::settings{
+        return ici::input{
             .fname = fs::path(inp_file).filename().string(),
             .circles = json_to_circles( 
                 json["circles"].get<std::vector<::json>>()
@@ -102,14 +102,14 @@ namespace {
     }
 }
 
-std::optional<const ici::settings> ici::parse_input(const std::string& inp_file)
+std::optional<const ici::input> ici::parse_input(const std::string& inp_file)
 {
     try {
         auto maybe_json = file_to_json(inp_file);
         if (!maybe_json) {
             return {};
         }
-        return json_to_settings(inp_file, *maybe_json);
+        return json_to_input(inp_file, *maybe_json);
     } catch (...) {
         return {};
     }

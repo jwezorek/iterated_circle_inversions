@@ -147,7 +147,7 @@ ici::rectangle ici::pad(const ici::rectangle& r, double padding) {
     };
 }
 
-std::vector<ici::circle> ici::perform_inversions(const ici::settings& inp)
+std::vector<ici::circle> ici::perform_inversions(const ici::input& inp)
 {
     std::println("inverting {}...", inp.fname);
 

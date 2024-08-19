@@ -16,7 +16,7 @@ namespace rv = std::ranges::views;
 
 namespace {
 
-	std::optional<ici::settings> parse_cmd_line(int argc, char* argv[]) {
+	std::optional<ici::input> parse_cmd_line(int argc, char* argv[]) {
 		if (argc != 2) {
 			return {};
 		}

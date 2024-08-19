@@ -8,7 +8,7 @@
 
 namespace ici {
 
-    struct settings {
+    struct input {
         std::string fname;
         std::vector<circle> circles;
         double eps;
@@ -16,6 +16,6 @@ namespace ici {
         std::string out_file;
     };
 
-    std::optional<const settings> parse_input(const std::string& inp_file);
+    std::optional<const input> parse_input(const std::string& inp_file);
 
 }
