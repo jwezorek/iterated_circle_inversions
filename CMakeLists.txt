@@ -14,4 +14,5 @@ add_executable(iterated_circle_inversions
     src/main.cpp
     src/util.cpp
     src/circle_set.cpp
+    src/input.cpp
 )

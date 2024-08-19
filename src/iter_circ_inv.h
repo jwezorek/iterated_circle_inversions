@@ -8,6 +8,8 @@
 
 namespace ici {
 
+    class settings;
+
     struct point {
         double x;
         double y;
@@ -37,6 +39,6 @@ namespace ici {
     std::optional<circle> invert(const circle& c, const circle& invertee);
     double distance(const point& pt1, const point& pt2);
 
-    std::vector<circle> do_one_round(const std::vector<circle>& circles);
+    std::vector<circle> perform_inversions(const ici::settings& inp);
 
 }

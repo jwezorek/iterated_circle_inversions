@@ -1,11 +1,14 @@
 #include "iter_circ_inv.h"
 #include "circle_set.h"
+#include "input.h"
 #include "util.h"
 #include <print>
 #include <sstream>
 #include <ranges>
 #include <complex>
+#include <filesystem>
 
+namespace fs = std::filesystem;
 namespace r = std::ranges;
 namespace rv = std::ranges::views;
 
@@ -18,6 +21,24 @@ namespace {
         return { x,y };
     }
 
+    std::vector<ici::circle> do_one_round(const std::vector<ici::circle>& circles, double eps) {
+        ici::circle_set new_circles(eps);
+        for (const auto& [c1, c2] : ici::two_combinations(circles)) {
+            new_circles.insert(c1);
+            new_circles.insert(c2);
+
+            auto c = invert(c1, c2);
+            auto d = invert(c2, c1);
+
+            if (c) {
+                new_circles.insert(*c);
+            }
+            if (d) {
+                new_circles.insert(*d);
+            }
+        }
+        return new_circles.to_vector();
+    }
 }
 
 ici::rectangle ici::bounds(const circle& c) {
@@ -126,23 +147,19 @@ ici::rectangle ici::pad(const ici::rectangle& r, double padding) {
     };
 }
 
-std::vector<ici::circle> ici::do_one_round(const std::vector<circle>& circles) {
-    circle_set new_circles(0.001);
-	for (const auto& [c1, c2] : two_combinations(circles)) {
-        new_circles.insert(c1);
-        new_circles.insert(c2);
+std::vector<ici::circle> ici::perform_inversions(const ici::settings& inp)
+{
+    std::println("inverting {}...", inp.fname);
 
-        auto c = invert(c1, c2);
-        auto d = invert(c2, c1);
+    auto circles = inp.circles;
+    for (int i : rv::iota(0, inp.iterations)) {
+        std::print("  iteration {}: {} circles ->", i + 1, circles.size());
+        circles = do_one_round(circles, inp.eps);
+        std::println(" {} circles...", circles.size());
+    }
 
-        if (c) {
-            new_circles.insert(*c);
-        }
-        if (d) {
-            new_circles.insert(*d);
-        }
-	}
-    return new_circles.to_vector();
+    std::println("complete.\ngenerating {} ...\n", fs::path(inp.out_file).filename().string());
+    return circles;
 }
 
 
