@@ -68,6 +68,44 @@ ici::point ici::operator*(double lhs, const ici::point& rhs) {
     };
 }
 
+std::optional<ici::point> ici::invert(const circle& c, const point& pt) {
+
+    auto x_diff = pt.x - c.loc.x;
+    auto y_diff = pt.y - c.loc.y;
+    auto denom = x_diff * x_diff + y_diff * y_diff;
+    if (std::abs(denom) < std::numeric_limits<float>::epsilon()) {
+        return {};
+    }
+
+    return point{
+        c.loc.x + (c.radius * c.radius * x_diff) / denom,
+        c.loc.y + (c.radius * c.radius * y_diff) / denom
+    };
+
+}
+
+std::optional<ici::circle> ici::invert(const circle& c, const circle& invertee)
+{
+    std::array<std::optional<point>, 4> ary = { {
+        invert(c, invertee.loc + point{0, invertee.radius}),    //north
+        invert(c, invertee.loc + point{ -invertee.radius, 0 }), //west
+        invert(c, invertee.loc + point{ invertee.radius, 0 }),  //east
+        invert(c, invertee.loc + point{ 0, -invertee.radius })  //south
+    } };
+
+    auto pts = ary | rv::filter(
+        [](auto&& p) { return p.has_value(); }
+    ) | rv::transform(
+        [](auto&& p) { return p.value(); }
+    ) | r::to<std::vector>();
+
+    if (pts.size() < 3) {
+        return {};
+    }
+
+    return circle_through_three_points(pts[0], pts[1], pts[2]);
+}
+
 double ici::distance(const point& pt1, const point& pt2)
 {
     auto x_diff = pt1.x - pt2.x;

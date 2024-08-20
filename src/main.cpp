@@ -5,10 +5,9 @@
 #include <numbers>
 #include <filesystem>
 #include "geometry.h"
-#include "iter_circ_inv.h"
+#include "iterated_inversion.h"
 #include "input.h"
 #include "util.h"
-#include "rasterize.h"
 #include <expected>
 #include <stdexcept>
 
@@ -41,9 +40,9 @@ int main(int argc, char* argv[]) {
 		auto circles = ici::perform_inversions( *input );
 
 		if (!input->raster) {
-			to_svg(input->out_file, circles, 10, 100);
+			ici::to_svg(input->out_file, circles, 10, 100);
 		} else {
-			ici::rasterize(input->out_file, circles, *input->raster);
+			ici::to_raster(input->out_file, circles, *input->raster);
 		}
 
 		return 0;

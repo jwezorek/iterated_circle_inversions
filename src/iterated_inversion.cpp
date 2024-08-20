@@ -1,15 +1,40 @@
-#include "rasterize.h"
-#include "input.h"
+#include "iterated_inversion.h"
 #include "geometry.h"
+#include "circle_set.h"
+#include "input.h"
+#include "util.h"
 #include <opencv2/opencv.hpp>
+#include <print>
+#include <sstream>
 #include <ranges>
+#include <complex>
+#include <filesystem>
 
+namespace fs = std::filesystem;
 namespace r = std::ranges;
 namespace rv = std::ranges::views;
 
+/*------------------------------------------------------------------------------------------------*/
 namespace {
 
-    using point = ici::point;
+    std::vector<ici::circle> do_one_round(const std::vector<ici::circle>& circles, double eps) {
+        ici::circle_set new_circles(eps);
+        for (const auto& [c1, c2] : ici::two_combinations(circles)) {
+            new_circles.insert(c1);
+            new_circles.insert(c2);
+
+            auto c = invert(c1, c2);
+            auto d = invert(c2, c1);
+
+            if (c) {
+                new_circles.insert(*c);
+            }
+            if (d) {
+                new_circles.insert(*d);
+            }
+        }
+        return new_circles.to_vector();
+    }
 
     cv::Vec3b to_cv_color(const ici::color& color) {
         return {
@@ -56,29 +81,30 @@ namespace {
     }
 
     std::tuple<int, int, double> image_metrics(
-                ici::point min_pt, ici::point max_pt, int scale, int resolution)  {
+        ici::point min_pt, ici::point max_pt, int scale, int resolution) {
 
-            double wd = max_pt.x - min_pt.y;
-            double hgt = max_pt.y - min_pt.y;
-            double cols = 0.0;
-            double rows = 0.0;
-            double log_to_image = 0.0;
+        double wd = max_pt.x - min_pt.y;
+        double hgt = max_pt.y - min_pt.y;
+        double cols = 0.0;
+        double rows = 0.0;
+        double log_to_image = 0.0;
 
-            if (wd > hgt) {
-                cols = resolution ;
-                rows = std::ceil((hgt * static_cast<double>(cols)) / wd);
-                log_to_image = static_cast<double>(cols) / wd;
-            } else {
-                rows = resolution;
-                cols = std::ceil((wd * static_cast<double>(rows)) / hgt);
-                log_to_image = static_cast<double>(rows) / hgt;
-            }
-
-            return { 
-                scale * static_cast<int>(cols), 
-                scale * static_cast<int>(rows), 
-                scale * log_to_image };
+        if (wd > hgt) {
+            cols = resolution;
+            rows = std::ceil((hgt * static_cast<double>(cols)) / wd);
+            log_to_image = static_cast<double>(cols) / wd;
         }
+        else {
+            rows = resolution;
+            cols = std::ceil((wd * static_cast<double>(rows)) / hgt);
+            log_to_image = static_cast<double>(rows) / hgt;
+        }
+
+        return {
+            scale * static_cast<int>(cols),
+            scale * static_cast<int>(rows),
+            scale * log_to_image };
+    }
 
 
     class modulo_canvas {
@@ -88,7 +114,7 @@ namespace {
 
     public:
         modulo_canvas(int cols, int rows, int modulus) :
-                modulus_(static_cast<uchar>(modulus)) {
+            modulus_(static_cast<uchar>(modulus)) {
             img_ = cv::Mat::zeros(rows, cols, CV_8UC1);
             mask_ = cv::Mat::zeros(rows, cols, CV_8UC1);
         }
@@ -117,8 +143,55 @@ namespace {
     };
 }
 
-void ici::rasterize(const std::string& outp, 
-        const std::vector<circle>& circles, const ici::raster_output_settings& settings) {
+std::vector<ici::circle> ici::perform_inversions(const ici::input& inp)
+{
+    std::println("inverting {}...", inp.fname);
+
+    auto circles = inp.circles;
+    for (int i : rv::iota(0, inp.iterations)) {
+        std::print("  iteration {}: {} circles ->", i + 1, circles.size());
+        circles = do_one_round(circles, inp.eps);
+        std::println(" {} circles...", circles.size());
+    }
+
+    std::println("complete.\ngenerating {} ...\n", fs::path(inp.out_file).filename().string());
+    return circles;
+}
+
+void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circles,
+        double padding, double scale) {
+
+    auto circles = inp_circles | rv::transform(
+        [k = scale](auto&& c) {
+            return ici::scale(c, k);
+        }
+    ) | r::to<std::vector>();
+    auto dimensions = pad(bounds(circles), padding);
+    std::stringstream ss;
+
+    ss << std::format(
+        "<svg style=\"{}\" viewBox=\"{} {} {} {}\" xmlns=\"http://www.w3.org/2000/svg\">\n",
+        "stroke-width: 1px; background-color: white;",
+        dimensions.min.x,
+        dimensions.min.y,
+        dimensions.max.x - dimensions.min.x,
+        dimensions.max.y - dimensions.min.y
+    );
+
+    for (const auto& c : circles) {
+        ss << std::format(
+            "    <circle cx=\"{}\" cy=\"{}\" r=\"{}\" fill=\"none\" stroke=\"black\" />\n",
+            c.loc.x, c.loc.y, c.radius
+        );
+    }
+
+    ss << "</svg>";
+
+    string_to_file(fname, ss.str());
+}
+
+void ici::to_raster(const std::string& outp,
+    const std::vector<circle>& circles, const ici::raster_output_settings& settings) {
     auto rect = bounds(circles);
 
     int scale = get_scale(settings.antialiasing_level);
@@ -126,7 +199,7 @@ void ici::rasterize(const std::string& outp,
         rect.min, rect.max, scale, settings.resolution
     );
 
-    int num_colors = static_cast<int>( settings.color_tbl.size() );
+    int num_colors = static_cast<int>(settings.color_tbl.size());
     modulo_canvas canvas(cols, rows, num_colors);
     for (auto&& circle : circles) {
         int x = static_cast<int>(std::round((circle.loc.x - rect.min.x) * logical_to_image));

@@ -16,12 +16,11 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 add_executable(iterated_circle_inversions
-    src/iter_circ_inv.cpp
+    src/iterated_inversion.cpp
     src/main.cpp
     src/util.cpp
     src/circle_set.cpp
     src/input.cpp
-    src/rasterize.cpp
     src/geometry.cpp
 )
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "geometry.h"
 #include <vector>
 #include <string>
 #include <ranges>
@@ -10,11 +9,7 @@
 
 namespace ici {
 
-    
-    std::vector<circle> parse(const std::vector<std::string>& inp);
-    std::vector<std::string> file_to_string_vector(const std::string& filename);
-    void to_svg(const std::string& fname, const std::vector<circle>& circles, 
-        double padding, double scale);
+    void string_to_file(const std::string& fname, const std::string& contents);
 
     template <std::ranges::random_access_range R>
     auto two_combinations(R&& rng) {
