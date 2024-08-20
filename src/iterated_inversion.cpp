@@ -83,7 +83,7 @@ namespace {
     std::tuple<int, int, double> image_metrics(
         ici::point min_pt, ici::point max_pt, int scale, int resolution) {
 
-        double wd = max_pt.x - min_pt.y;
+        double wd = max_pt.x - min_pt.x;
         double hgt = max_pt.y - min_pt.y;
         double cols = 0.0;
         double rows = 0.0;
