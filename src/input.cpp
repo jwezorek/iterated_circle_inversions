@@ -85,7 +85,7 @@ namespace {
         auto dir = fs::path(out_path).parent_path();
         if (dir.empty()) {
             return (input_dir / out_path).string();
-        }
+        } 
         return out_path;
     }
 
@@ -101,9 +101,9 @@ namespace {
             vals[i / 2] = static_cast<uint8_t>(std::stoi(hex.substr(i, 2), nullptr, 16));
         }
         return {
-            vals[0],
+            vals[2],
             vals[1],
-            vals[2]
+            vals[0]
         };
     }
 
