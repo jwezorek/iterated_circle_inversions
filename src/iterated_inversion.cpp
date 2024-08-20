@@ -192,18 +192,18 @@ void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circle
 
 void ici::to_raster(const std::string& outp,
     const std::vector<circle>& circles, const ici::raster_settings& settings) {
-    auto rect = bounds(circles);
+    rectangle view_rect = settings.view ? *settings.view : bounds(circles);
 
     int scale = get_scale(settings.antialiasing_level);
     auto [cols, rows, logical_to_image] = image_metrics(
-        rect.min, rect.max, scale, settings.resolution
+        view_rect.min, view_rect.max, scale, settings.resolution
     );
 
     int num_colors = static_cast<int>(settings.color_tbl.size());
     modulo_canvas canvas(cols, rows, num_colors);
     for (auto&& circle : circles) {
-        int x = static_cast<int>(std::round((circle.loc.x - rect.min.x) * logical_to_image));
-        int y = static_cast<int>(std::round((circle.loc.y - rect.min.y) * logical_to_image));
+        int x = static_cast<int>(std::round((circle.loc.x - view_rect.min.x) * logical_to_image));
+        int y = static_cast<int>(std::round((circle.loc.y - view_rect.min.y) * logical_to_image));
         int r = static_cast<int>(std::round(circle.radius * logical_to_image));
         canvas.add_circle(x, y, r);
     }

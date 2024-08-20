@@ -27,6 +27,7 @@ namespace {
     constexpr auto k_colors_field = "colors";
     constexpr auto k_scale_field = "scale";
     constexpr auto k_padding_field = "padding";
+    constexpr auto k_view_field = "view";
 
     constexpr auto k_out_file = "out-file";
 
@@ -119,6 +120,17 @@ namespace {
         return color_strs | rv::transform(str_to_color) | r::to<std::vector>();
     }
 
+    std::optional<ici::rectangle> get_view_rect(const json& json) {
+        if (!json.contains(k_view_field)) {
+            return {};
+        }
+        auto values = json[k_view_field].get<std::vector<double>>();
+        return ici::rectangle{
+            { values[0] , values[1] },
+            { values[2] , values[3] }
+        };
+    }
+
     std::optional<ici::raster_settings> get_raster_output_settings(
             std::string& outfile, const json& json) {
         if (fs::path(outfile).extension() != ".png") {
@@ -132,7 +144,8 @@ namespace {
             json.contains(k_antialias_field) ?
                 json[k_antialias_field].get<int>() :
                 k_default_aa_level,
-            get_color_table(json)
+            get_color_table(json),
+            get_view_rect(json)
         };
     }
 

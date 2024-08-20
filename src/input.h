@@ -20,6 +20,7 @@ namespace ici {
         int resolution;
         int antialiasing_level;
         std::vector<color> color_tbl;
+        std::optional<rectangle> view;
     };
 
     struct vector_settings {
