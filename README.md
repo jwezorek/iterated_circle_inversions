@@ -1,5 +1,5 @@
 # iterated_circle_inversions
-
+![sample output](http://jwezorek.com/wp-content/uploads/2024/08/square_new.png)
 Command line tool for generating images of iterated circle inversions.
 
 The basic idea is the following:
