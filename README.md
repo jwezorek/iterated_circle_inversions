@@ -1,6 +1,6 @@
 # iterated_circle_inversions
 ![sample output](http://jwezorek.com/wp-content/uploads/2024/08/square_new.png)
-Command line tool for generating images of iterated circle inversions.
+Command line tool for generating images of iterated circle inversions. The code is C++23 with a dependency on OpenCV for rasterization.
 
 The basic idea is the following:
 
