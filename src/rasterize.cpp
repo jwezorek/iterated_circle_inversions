@@ -19,24 +19,21 @@ namespace {
         };
     }
 
-    /*
-    cv::Mat modulo(const cv::Mat& mat, uchar modulus) {
-        cv::Mat result = mat.clone();
-
-        for (int y = 0; y < result.rows; y++) {
-            for (int x = 0; x < result.cols; x++) {
-                result.at<uchar>(y, x) = mat.at<uchar>(y,x) % modulus;
-
-                if (result.at<uchar>(y, x) >= 2) {
-                    int aaa;
-                    aaa = 5;
-                }
-            }
+    int get_scale(int antialias_mode) {
+        if (antialias_mode == 0) {
+            return 1;
         }
 
-        return result;
+        if (antialias_mode > 3) {
+            antialias_mode = 3;
+        }
+        int scale = 1;
+        for (int i = 0; i < antialias_mode; ++i) {
+            scale *= 2;
+        }
+        return scale;
     }
-    */
+
     void modulo_in_place(cv::Mat& mat, uchar modulus) {
         for (int y = 0; y < mat.rows; y++) {
             for (int x = 0; x < mat.cols; x++) {
@@ -59,7 +56,8 @@ namespace {
     }
 
     std::tuple<int, int, double> image_metrics(
-                ici::point min_pt, ici::point max_pt, int resolution)  {
+                ici::point min_pt, ici::point max_pt, int scale, int resolution)  {
+
             double wd = max_pt.x - min_pt.y;
             double hgt = max_pt.y - min_pt.y;
             double cols = 0.0;
@@ -67,7 +65,7 @@ namespace {
             double log_to_image = 0.0;
 
             if (wd > hgt) {
-                cols = resolution;
+                cols = resolution ;
                 rows = std::ceil((hgt * static_cast<double>(cols)) / wd);
                 log_to_image = static_cast<double>(cols) / wd;
             } else {
@@ -76,7 +74,10 @@ namespace {
                 log_to_image = static_cast<double>(rows) / hgt;
             }
 
-            return { static_cast<int>(cols), static_cast<int>(rows), log_to_image };
+            return { 
+                scale * static_cast<int>(cols), 
+                scale * static_cast<int>(rows), 
+                scale * log_to_image };
         }
 
 
@@ -106,15 +107,6 @@ namespace {
             cv::add(mat_roi, temp_roi, mat_roi);
             modulo_in_place(mat_roi, modulus_);
 
-            for (int y = 0; y < img_.rows; y++) {
-                for (int x = 0; x < img_.cols; x++) {
-                    if (img_.at<uchar>(y, x) >= 2) {
-                        int aaa;
-                        aaa = 5;
-                    }
-                }
-            }
-
             cv::circle(mask_, cv::Point(x, y), radius, cv::Scalar(0), -1);
 
         }
@@ -128,7 +120,12 @@ namespace {
 void ici::rasterize(const std::string& outp, 
         const std::vector<circle>& circles, const ici::raster_output_settings& settings) {
     auto rect = circles_bounds(circles);
-    auto [cols, rows, logical_to_image] = image_metrics(rect.min, rect.max, settings.resolution);
+
+    int scale = get_scale(settings.antialiasing_level);
+    auto [cols, rows, logical_to_image] = image_metrics(
+        rect.min, rect.max, scale, settings.resolution
+    );
+
     int num_colors = static_cast<int>( settings.color_tbl.size() );
     modulo_canvas canvas(cols, rows, num_colors);
     for (auto&& circle : circles) {
@@ -139,5 +136,13 @@ void ici::rasterize(const std::string& outp,
     }
     auto palette = settings.color_tbl | rv::transform(to_cv_color) | r::to<std::vector>();
     auto image = apply_color_table(canvas.image(), palette);
+
+    if (scale > 1) {
+        cv::Mat resized;
+        cv::Size sz(image.cols / scale, image.rows / scale);
+        cv::resize(image, resized, sz, 0, 0, cv::INTER_AREA);
+        image = resized.clone();
+    }
+
     cv::imwrite(outp, image);
 }

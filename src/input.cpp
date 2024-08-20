@@ -89,10 +89,17 @@ namespace {
         if (fs::path(outfile).extension() != ".png") {
             return {};
         }
-
+        /*
         std::vector<ici::color> colors = {
             {0,0,0},
             {255,255,255}
+        };
+        */
+
+        std::vector<ici::color> colors = {
+            {255,   0,   0},
+            {0,   255,   0},
+            {0,     0, 255}
         };
 
         return ici::raster_output_settings{
