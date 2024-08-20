@@ -3,6 +3,8 @@
 #include "iter_circ_inv.h"
 #include <vector>
 #include <optional>
+#include <expected>
+#include <stdexcept>
 
 /*------------------------------------------------------------------------------------------------*/
 
@@ -29,6 +31,6 @@ namespace ici {
         std::optional<raster_output_settings> raster;
     };
 
-    std::optional<const input> parse_input(const std::string& inp_file);
+    std::expected<const input, std::runtime_error> parse_input(const std::string& inp_file);
 
 }

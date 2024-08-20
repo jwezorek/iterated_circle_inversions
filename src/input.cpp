@@ -26,11 +26,15 @@ namespace {
 
     constexpr auto k_out_file = "out-file";
 
-    std::optional<json> file_to_json(const std::string& inp_file) {
+    std::expected<json, std::runtime_error> file_to_json(const std::string& inp_file) {
         std::ifstream file(inp_file);
 
         if (!file.is_open()) {
-            return {};
+            return std::unexpected(
+                std::runtime_error(
+                    std::format("'{}' not found / cannot be opened", inp_file)
+                )
+            );
         }
 
         try {
@@ -39,7 +43,7 @@ namespace {
             return json_data;
         }
         catch (const json::parse_error& e) {
-            return {};
+            return std::unexpected(std::runtime_error(e.what()));
         }
     }
 
@@ -128,15 +132,19 @@ namespace {
         };
     }
 
-    std::optional<const ici::input> json_to_input(
+    std::expected<const ici::input, std::runtime_error> json_to_input(
             const std::string& inp_file, const json& json) {
 
         if (!json.is_object()) {
-            return {};
+            return std::unexpected(
+                std::runtime_error("invalid JSON, no toplevel object")
+            );
         }
 
         if (!json.contains("circles")) {
-            return {};
+            return std::unexpected(
+                std::runtime_error("invalid JSON, no initial circles")
+            );
         }
 
         auto outp = get_out_file(json, inp_file);
@@ -154,15 +162,17 @@ namespace {
     }
 }
 
-std::optional<const ici::input> ici::parse_input(const std::string& inp_file)
+std::expected<const ici::input, std::runtime_error> ici::parse_input(const std::string& inp_file)
 {
     try {
         auto maybe_json = file_to_json(inp_file);
-        if (!maybe_json) {
-            return {};
+        if (!maybe_json.has_value()) {
+            return std::unexpected(maybe_json.error());
         }
         return json_to_input(inp_file, *maybe_json);
+    } catch (std::runtime_error e) {
+        return std::unexpected(e);
     } catch (...) {
-        return {};
+        return std::unexpected(std::runtime_error("unknown error while parsing input"));
     }
 }
