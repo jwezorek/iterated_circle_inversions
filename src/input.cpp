@@ -20,7 +20,7 @@ namespace {
     constexpr auto k_default_out_fname = "circle_inv.svg"; 
     constexpr auto k_eps_field = "eps";
     constexpr auto k_iters_field = "iterations";
-    constexpr auto k_output_res_field = "output_resolution";
+    constexpr auto k_output_res_field = "resolution";
     constexpr auto k_antialias_field = "antialiasing_level";
 
     constexpr auto k_out_file = "out-file";
