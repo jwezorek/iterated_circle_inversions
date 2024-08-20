@@ -23,12 +23,12 @@ The above was generated via the following JSON input:
             [ 0, -0.7071067811865476, 1 ],
             [ 0, 0, 1.7071067811865475 ]
         ],
-    "iterations": 3,
-    "out-file": "square_3iters.png",
-    "resolution" : 3000,
-    "antialiasing_level": 3,
-    "colors": [ "#000000", "#444444", "#AAAAAA", "#FFD700" ],
-    "view": [ -10, -10, 10, 10 ]
+        "iterations": 3,
+        "out-file": "square_3iters.png",
+        "resolution" : 3000,
+        "antialiasing_level": 3,
+        "colors": [ "#000000", "#444444", "#AAAAAA", "#FFD700" ],
+        "view": [ -10, -10, 10, 10 ]
     }
  
 * circles: The circles array is the [center_x, center_y, radius] of the seed circles.
