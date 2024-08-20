@@ -4,6 +4,7 @@
 #include <ranges>
 #include <numbers>
 #include <filesystem>
+#include "geometry.h"
 #include "iter_circ_inv.h"
 #include "input.h"
 #include "util.h"

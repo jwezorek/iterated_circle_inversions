@@ -22,6 +22,7 @@ add_executable(iterated_circle_inversions
     src/circle_set.cpp
     src/input.cpp
     src/rasterize.cpp
+    src/geometry.cpp
 )
 
 target_link_libraries(iterated_circle_inversions ${OpenCV_LIBS})

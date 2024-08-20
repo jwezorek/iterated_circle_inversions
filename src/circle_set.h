@@ -1,6 +1,6 @@
 #pragma once
 
-#include "iter_circ_inv.h"
+#include "geometry.h"
 #include <memory>
 #include <boost/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>

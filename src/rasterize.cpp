@@ -1,6 +1,6 @@
 #include "rasterize.h"
 #include "input.h"
-#include "iter_circ_inv.h"
+#include "geometry.h"
 #include <opencv2/opencv.hpp>
 #include <ranges>
 
