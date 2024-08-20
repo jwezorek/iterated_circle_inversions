@@ -22,6 +22,7 @@ namespace {
     constexpr auto k_iters_field = "iterations";
     constexpr auto k_output_res_field = "resolution";
     constexpr auto k_antialias_field = "antialiasing_level";
+    constexpr auto k_colors_field = "colors";
 
     constexpr auto k_out_file = "out-file";
 
@@ -84,23 +85,37 @@ namespace {
         return out_path;
     }
 
+    ici::color str_to_color(const std::string& str) {
+        auto hex = (str.size() == 7 && str.front() == '#') ?
+            str.substr(1, 6) : str;
+        if (hex.size() != 6) {
+            throw std::runtime_error("bad color string");
+        }
+
+        std::array<uint8_t, 3> vals;
+        for (int i = 0; i < 6; i += 2) {
+            vals[i / 2] = static_cast<uint8_t>(std::stoi(hex.substr(i, 2), nullptr, 16));
+        }
+        return {
+            vals[0],
+            vals[1],
+            vals[2]
+        };
+    }
+
+    std::vector<ici::color> get_color_table(const json& json) {
+        if (!json.contains(k_colors_field)) {
+            return { {0,0,0},{255,255,255} };
+        }
+        auto color_strs = json[k_colors_field].get<std::vector<std::string>>();
+        return color_strs | rv::transform(str_to_color) | r::to<std::vector>();
+    }
+
     std::optional<ici::raster_output_settings> get_raster_output_settings(
             std::string& outfile, const json& json) {
         if (fs::path(outfile).extension() != ".png") {
             return {};
         }
-        /*
-        std::vector<ici::color> colors = {
-            {0,0,0},
-            {255,255,255}
-        };
-        */
-
-        std::vector<ici::color> colors = {
-            {255,   0,   0},
-            {0,   255,   0},
-            {0,     0, 255}
-        };
 
         return ici::raster_output_settings{
             json.contains(k_output_res_field) ?
@@ -109,7 +124,7 @@ namespace {
             json.contains(k_antialias_field) ?
                 json[k_antialias_field].get<int>() :
                 k_default_aa_level,
-            colors
+            get_color_table(json)
         };
     }
 
