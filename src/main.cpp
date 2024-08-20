@@ -39,10 +39,16 @@ int main(int argc, char* argv[]) {
 
 		auto circles = ici::perform_inversions( *input );
 
-		if (!input->raster) {
-			ici::to_svg(input->out_file, circles, 10, 100);
+		if (std::holds_alternative<ici::vector_settings>(input->output_settings)) {
+			ici::to_svg(
+				input->out_file, 
+				circles, 
+				std::get<ici::vector_settings>(input->output_settings)
+			);
 		} else {
-			ici::to_raster(input->out_file, circles, *input->raster);
+			ici::to_raster(input->out_file, circles, 
+				std::get<ici::raster_settings>(input->output_settings)
+			);
 		}
 
 		return 0;

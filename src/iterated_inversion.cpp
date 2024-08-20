@@ -159,14 +159,14 @@ std::vector<ici::circle> ici::perform_inversions(const ici::input& inp)
 }
 
 void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circles,
-        double padding, double scale) {
+        const vector_settings& settings) {
 
     auto circles = inp_circles | rv::transform(
-        [k = scale](auto&& c) {
+        [k = settings.scale](auto&& c) {
             return ici::scale(c, k);
         }
     ) | r::to<std::vector>();
-    auto dimensions = pad(bounds(circles), padding);
+    auto dimensions = pad(bounds(circles), settings.padding);
     std::stringstream ss;
 
     ss << std::format(
@@ -191,7 +191,7 @@ void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circle
 }
 
 void ici::to_raster(const std::string& outp,
-    const std::vector<circle>& circles, const ici::raster_output_settings& settings) {
+    const std::vector<circle>& circles, const ici::raster_settings& settings) {
     auto rect = bounds(circles);
 
     int scale = get_scale(settings.antialiasing_level);

@@ -2,7 +2,7 @@
 
 #include "geometry.h"
 #include <vector>
-#include <optional>
+#include <variant>
 #include <expected>
 #include <stdexcept>
 
@@ -16,10 +16,15 @@ namespace ici {
         uint8_t b;
     };
 
-    struct raster_output_settings {
+    struct raster_settings {
         int resolution;
         int antialiasing_level;
         std::vector<color> color_tbl;
+    };
+
+    struct vector_settings {
+        double scale;
+        double padding;
     };
 
     struct input {
@@ -28,7 +33,7 @@ namespace ici {
         double eps;
         int iterations;
         std::string out_file;
-        std::optional<raster_output_settings> raster;
+        std::variant<vector_settings, raster_settings> output_settings;
     };
 
     std::expected<const input, std::runtime_error> parse_input(const std::string& inp_file);

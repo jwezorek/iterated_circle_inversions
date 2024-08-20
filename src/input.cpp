@@ -17,12 +17,16 @@ namespace {
     constexpr auto k_num_iterations = 2;
     constexpr auto k_default_res = 2048;
     constexpr auto k_default_aa_level = 0;
+    constexpr auto k_default_scale = 100.0;
+    constexpr auto k_default_padding = 10.0;
     constexpr auto k_default_out_fname = "circle_inv.svg"; 
     constexpr auto k_eps_field = "eps";
     constexpr auto k_iters_field = "iterations";
     constexpr auto k_output_res_field = "resolution";
     constexpr auto k_antialias_field = "antialiasing_level";
     constexpr auto k_colors_field = "colors";
+    constexpr auto k_scale_field = "scale";
+    constexpr auto k_padding_field = "padding";
 
     constexpr auto k_out_file = "out-file";
 
@@ -115,13 +119,13 @@ namespace {
         return color_strs | rv::transform(str_to_color) | r::to<std::vector>();
     }
 
-    std::optional<ici::raster_output_settings> get_raster_output_settings(
+    std::optional<ici::raster_settings> get_raster_output_settings(
             std::string& outfile, const json& json) {
         if (fs::path(outfile).extension() != ".png") {
             return {};
         }
 
-        return ici::raster_output_settings{
+        return ici::raster_settings{
             json.contains(k_output_res_field) ?
                 json[k_output_res_field].get<int>() :
                 k_default_res,
@@ -130,6 +134,31 @@ namespace {
                 k_default_aa_level,
             get_color_table(json)
         };
+    }
+
+    std::optional<ici::vector_settings> get_vector_output_settings(
+        std::string& outfile, const json& json) {
+        if (fs::path(outfile).extension() != ".svg") {
+            return {};
+        }
+
+        return ici::vector_settings{
+            json.contains(k_scale_field) ?
+                json[k_scale_field].get<double>() :
+                k_default_scale,
+            json.contains(k_padding_field) ?
+                json[k_padding_field].get<double>() :
+                k_default_padding
+        };
+    }
+
+    std::variant<ici::vector_settings, ici::raster_settings> get_output_settings(
+            std::string& outfile, const json& json) {
+        auto raster = get_raster_output_settings(outfile, json);
+        if (raster) {
+            return *raster;
+        }
+        return *get_vector_output_settings(outfile, json);
     }
 
     std::expected<const ici::input, std::runtime_error> json_to_input(
@@ -157,7 +186,7 @@ namespace {
             .eps = get_eps( json ),
             .iterations = get_num_iterations( json ),
             .out_file = outp,
-            .raster = get_raster_output_settings(outp, json)
+            .output_settings = get_output_settings(outp, json)
         };
     }
 }
