@@ -68,7 +68,7 @@ void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circle
                 return ici::scale(c, k);
             }
         ) | r::to<std::vector>();
-    auto dimensions = pad(circles_bounds(circles), padding);
+    auto dimensions = pad( bounds(circles), padding );
     std::stringstream ss;
 
     ss << std::format(

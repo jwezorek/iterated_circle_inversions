@@ -119,7 +119,7 @@ namespace {
 
 void ici::rasterize(const std::string& outp, 
         const std::vector<circle>& circles, const ici::raster_output_settings& settings) {
-    auto rect = circles_bounds(circles);
+    auto rect = bounds(circles);
 
     int scale = get_scale(settings.antialiasing_level);
     auto [cols, rows, logical_to_image] = image_metrics(

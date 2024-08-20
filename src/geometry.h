@@ -24,8 +24,8 @@ namespace ici {
     point operator-(const point& lhs, const point& rhs);
     point operator*(double lhs, const point& rhs);
 
-    rectangle circle_bounds(const circle& c);
-    rectangle circles_bounds(const std::vector<circle>& circles);
+    rectangle bounds(const circle& c);
+    rectangle bounds(const std::vector<circle>& circles);
     rectangle pad(const rectangle& r, double padding);
     circle scale(const circle& c, double k);
     std::optional<circle> circle_through_three_points(

@@ -15,7 +15,7 @@ namespace {
     }
 }
 
-ici::rectangle ici::circle_bounds(const circle& c) {
+ici::rectangle ici::bounds(const circle& c) {
     return {
         {c.loc.x - c.radius, c.loc.y - c.radius},
         {c.loc.x + c.radius, c.loc.y + c.radius}
@@ -82,13 +82,15 @@ ici::rectangle ici::pad(const ici::rectangle& r, double padding) {
     };
 }
 
-ici::rectangle ici::circles_bounds(const std::vector<ici::circle>& circles) {
-    auto bounds = circles | rv::transform(circle_bounds) | r::to<std::vector>();
+ici::rectangle ici::bounds(const std::vector<ici::circle>& circles) {
+    auto rects = circles | rv::transform(
+            [](const ici::circle& c) {return bounds(c); }
+        ) | r::to<std::vector>();
 
-    auto x1 = r::min(bounds | rv::transform([](auto&& r) { return r.min.x; }));
-    auto y1 = r::min(bounds | rv::transform([](auto&& r) { return r.min.y; }));
-    auto x2 = r::max(bounds | rv::transform([](auto&& r) { return r.max.x; }));
-    auto y2 = r::max(bounds | rv::transform([](auto&& r) { return r.max.y; }));
+    auto x1 = r::min(rects | rv::transform([](auto&& r) { return r.min.x; }));
+    auto y1 = r::min(rects | rv::transform([](auto&& r) { return r.min.y; }));
+    auto x2 = r::max(rects | rv::transform([](auto&& r) { return r.max.x; }));
+    auto y2 = r::max(rects | rv::transform([](auto&& r) { return r.max.y; }));
 
     return { {x1,y1},{x2,y2} };
 }
