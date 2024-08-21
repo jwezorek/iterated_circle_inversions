@@ -6,7 +6,7 @@
     [ 0, -1.5388417685876268, 1.118033988749895 ]
   ],
   "resolution": 3000,
-  "iterations": 4,
+  "iterations": 3,
   "antialiasing_level": 3,
   "out-file": "golden_triangle_1.png"
 }

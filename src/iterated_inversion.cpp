@@ -194,6 +194,12 @@ void ici::to_raster(const std::string& outp,
     const std::vector<circle>& circles, const ici::raster_settings& settings) {
     rectangle view_rect = settings.view ? *settings.view : bounds(circles);
 
+    std::println("rasterizing...");
+    std::println("  view rect: [({} , {}) - ({} , {})]\n",
+        view_rect.min.x, view_rect.min.y,
+        view_rect.max.x, view_rect.max.y
+    );
+
     int scale = get_scale(settings.antialiasing_level);
     auto [cols, rows, logical_to_image] = image_metrics(
         view_rect.min, view_rect.max, scale, settings.resolution
@@ -201,11 +207,20 @@ void ici::to_raster(const std::string& outp,
 
     int num_colors = static_cast<int>(settings.color_tbl.size());
     modulo_canvas canvas(cols, rows, num_colors);
+    int count = 0;
     for (auto&& circle : circles) {
+        if (circles.size() > 10000) {
+            if (count % 1000 == 0) {
+                std::println("  rasterized {} circles of {}...",
+                    count, circles.size()
+                );
+            }
+        }
         int x = static_cast<int>(std::round((circle.loc.x - view_rect.min.x) * logical_to_image));
         int y = static_cast<int>(std::round((circle.loc.y - view_rect.min.y) * logical_to_image));
         int r = static_cast<int>(std::round(circle.radius * logical_to_image));
         canvas.add_circle(x, y, r);
+        count++;
     }
     auto palette = settings.color_tbl | rv::transform(to_cv_color) | r::to<std::vector>();
     auto image = apply_color_table(canvas.image(), palette);
