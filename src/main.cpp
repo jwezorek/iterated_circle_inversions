@@ -23,7 +23,7 @@ namespace {
     std::expected<const ici::input, std::runtime_error> parse_cmd_line(int argc, char* argv[]) {
         if (argc != 2) {
             return std::unexpected(
-                std::runtime_error("iterated circle inversions requires a .json file.")
+                std::runtime_error("missing required .json file.")
             );
         }
         return ici::parse_input(argv[1]);
@@ -37,6 +37,7 @@ int main(int argc, char* argv[]) {
         if (!input.has_value()) {
             throw input.error();
         }
+
         auto circles = ici::invert_circles(*input);
 
         if (std::holds_alternative<ici::vector_settings>(input->output_settings)) {
@@ -56,7 +57,7 @@ int main(int argc, char* argv[]) {
     } catch (std::runtime_error e) {
         std::println("error : {}", e.what());
     } catch (...) {
-        std::println("error : {}", "unkown");
+        std::println("error : {}", "unknown error");
     }
 
     return -1;

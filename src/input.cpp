@@ -11,6 +11,7 @@ namespace rv = std::ranges::views;
 /*------------------------------------------------------------------------------------------------*/
 
 namespace {
+
     using json = nlohmann::json;
 
     constexpr auto k_epsilon = 0.0001;
@@ -19,6 +20,7 @@ namespace {
     constexpr auto k_default_aa_level = 0;
     constexpr auto k_default_scale = 100.0;
     constexpr auto k_default_padding = 10.0;
+
     constexpr auto k_default_out_fname = "circle_inv.svg"; 
     constexpr auto k_eps_field = "eps";
     constexpr auto k_iters_field = "iterations";
@@ -28,7 +30,6 @@ namespace {
     constexpr auto k_scale_field = "scale";
     constexpr auto k_padding_field = "padding";
     constexpr auto k_view_field = "view";
-
     constexpr auto k_out_file = "out-file";
 
     std::expected<json, std::runtime_error> file_to_json(const std::string& inp_file) {
