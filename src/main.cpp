@@ -10,6 +10,7 @@
 #include "util.h"
 #include <expected>
 #include <stdexcept>
+#include <chrono>
 
 namespace fs = std::filesystem;
 namespace r = std::ranges;
@@ -36,8 +37,6 @@ int main(int argc, char* argv[]) {
 		if (!input.has_value()) {
 			throw input.error();
 		}
-
-		//auto circles = ici::perform_inversions( *input );
 		auto circles = ici::invert_circles(*input);
 
 		if (std::holds_alternative<ici::vector_settings>(input->output_settings)) {

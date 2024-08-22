@@ -32,6 +32,7 @@ namespace ici {
         std::vector<circle> to_vector() const;
         double eps() const;
         bool empty() const;
+        size_t size() const;
     };
 
 }

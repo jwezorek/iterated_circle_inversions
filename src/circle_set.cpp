@@ -84,7 +84,10 @@ double ici::circle_set::eps() const {
     return eps_;
 }
 
-bool ici::circle_set::empty() const
-{
+bool ici::circle_set::empty() const {
     return tree_.empty();
+}
+
+size_t ici::circle_set::size() const {
+    return tree_.size();
 }
