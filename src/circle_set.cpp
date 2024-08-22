@@ -79,3 +79,12 @@ void ici::circle_set::insert(const circle& c) {
 std::vector<ici::circle> ici::circle_set::to_vector() const {
     return tree_ | rv::transform(to_circle) | r::to<std::vector>();
 }
+
+double ici::circle_set::eps() const {
+    return eps_;
+}
+
+bool ici::circle_set::empty() const
+{
+    return tree_.empty();
+}

@@ -37,7 +37,8 @@ int main(int argc, char* argv[]) {
 			throw input.error();
 		}
 
-		auto circles = ici::perform_inversions( *input );
+		//auto circles = ici::perform_inversions( *input );
+		auto circles = ici::invert_circles(*input);
 
 		if (std::holds_alternative<ici::vector_settings>(input->output_settings)) {
 			ici::to_svg(

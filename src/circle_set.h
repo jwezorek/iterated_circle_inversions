@@ -2,6 +2,7 @@
 
 #include "geometry.h"
 #include <memory>
+#include <ranges>
 #include <boost/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>
 #include <boost/geometry/geometries/box.hpp>
@@ -22,8 +23,15 @@ namespace ici {
 
     public:
         circle_set(double eps);
+        circle_set(double eps, std::ranges::forward_range auto circles) : circle_set(eps) {
+            for (auto&& c : circles) {
+                insert(c);
+            }
+        }
         void insert(const circle& c);
         std::vector<circle> to_vector() const;
+        double eps() const;
+        bool empty() const;
     };
 
 }

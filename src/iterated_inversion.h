@@ -15,6 +15,8 @@ namespace ici {
 
     std::vector<circle> perform_inversions(const ici::input& inp);
 
+    std::vector<circle> invert_circles(const ici::input& inp);
+
     void to_svg(const std::string& fname, const std::vector<circle>& circles,
         const vector_settings& settings);
 

@@ -158,6 +158,65 @@ std::vector<ici::circle> ici::perform_inversions(const ici::input& inp)
     return circles;
 }
 
+void invert_and_insert(ici::circle_set& set, const ici::circle& lhs, const ici::circle& rhs) {
+    auto inversion = ici::invert(lhs, rhs);
+    if (inversion) {
+        set.insert(*inversion);
+    }
+}
+
+ici::circle_set all_inversions(const ici::circle_set& set) {
+    ici::circle_set output(set.eps());
+    auto circles = set.to_vector();
+    for (const auto& [c1, c2] : ici::two_combinations(circles)) {
+        invert_and_insert(output, c1, c2);
+        invert_and_insert(output, c2, c1);
+    }
+    return output;
+}
+
+ici::circle_set inverse_of_cartesian_product(const ici::circle_set& lhs, const ici::circle_set& rhs) {
+    ici::circle_set output(lhs.eps());
+
+    if (lhs.empty() || rhs.empty()) {
+        return output;
+    }
+
+    auto lhs_circles = lhs.to_vector();
+    auto rhs_circles = rhs.to_vector();
+    for (const auto& [c1, c2] : rv::cartesian_product(lhs_circles, rhs_circles)) {
+        invert_and_insert(output, c1, c2);
+        invert_and_insert(output, c2, c1);
+    }
+
+    return output;
+}
+
+ici::circle_set circle_set_union(const ici::circle_set& lhs, const ici::circle_set& rhs) {
+    ici::circle_set output(lhs.eps(), lhs.to_vector());
+    auto rhs_circles = rhs.to_vector();
+    for (auto&& c : rhs_circles) {
+        output.insert(c);
+    }
+    return output;
+}
+
+std::vector<ici::circle> ici::invert_circles(const ici::input& inp)
+{
+    circle_set output(inp.eps);
+    circle_set prev(inp.eps);
+    circle_set curr(inp.eps, inp.circles);
+    for (int i : rv::iota(0, inp.iterations)) {
+        auto new_inversions = circle_set_union(
+            all_inversions(curr), inverse_of_cartesian_product(prev, curr)
+        );
+        prev = curr;
+        curr = new_inversions;
+        output = circle_set_union(output, curr);
+    }
+    return output.to_vector();
+}
+
 void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circles,
         const vector_settings& settings) {
 
