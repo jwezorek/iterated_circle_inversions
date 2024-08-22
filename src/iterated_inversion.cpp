@@ -105,8 +105,17 @@ namespace {
 
             int x_start = std::max(x - radius, 0);
             int y_start = std::max(y - radius, 0);
+
+            if (y_start >= mask_.rows || x_start >= mask_.cols) {
+                return;
+            }
+
             int x_end = std::min(x + radius, mask_.cols);
             int y_end = std::min(y + radius, mask_.rows);
+
+            if (y_end < 0 || x_end < 0) {
+                return;
+            }
 
             cv::Rect roi(x_start, y_start, x_end - x_start, y_end - y_start);
             cv::Mat mat_roi = img_(roi);
