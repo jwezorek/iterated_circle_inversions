@@ -200,7 +200,8 @@ std::vector<ici::circle> ici::invert_circles(const ici::input& inp)
     std::println("complete.\ngenerating {} ...\n", 
         fs::path(inp.out_file).filename().string()
     );
-    return output.to_vector();
+
+    return (!output.empty()) ? output.to_vector() : inp.circles;
 }
 
 void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circles,
@@ -248,7 +249,7 @@ void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circle
 }
 
 void ici::to_raster(const std::string& outp,
-    const std::vector<circle>& circles, const ici::raster_settings& settings) {
+        const std::vector<circle>& circles, const ici::raster_settings& settings) {
     rectangle view_rect = settings.view ? *settings.view : bounds(circles);
 
     std::println("rasterizing...");
