@@ -25,12 +25,18 @@ namespace {
     constexpr auto k_eps_field = "eps";
     constexpr auto k_iters_field = "iterations";
     constexpr auto k_output_res_field = "resolution";
-    constexpr auto k_antialias_field = "antialiasing_level";
+    constexpr auto k_antialias_field = "antialiasing-level";
     constexpr auto k_colors_field = "colors";
     constexpr auto k_scale_field = "scale";
     constexpr auto k_padding_field = "padding";
     constexpr auto k_view_field = "view";
+    constexpr auto k_color_field = "color";
+    constexpr auto k_bkgd_color_field = "bkgd-color";
+    constexpr auto k_blend_field = "blend-mode";
     constexpr auto k_out_file = "out-file";
+    constexpr auto k_default_color = "white";
+    constexpr auto k_default_bkgd_color = "black";
+    constexpr auto k_default_blend = "exclusion";
 
     std::expected<json, std::runtime_error> file_to_json(const std::string& inp_file) {
         std::ifstream file(inp_file);
@@ -157,12 +163,26 @@ namespace {
         }
 
         return ici::vector_settings{
+
             json.contains(k_scale_field) ?
                 json[k_scale_field].get<double>() :
                 k_default_scale,
+
             json.contains(k_padding_field) ?
                 json[k_padding_field].get<double>() :
-                k_default_padding
+                k_default_padding,
+
+            json.contains(k_bkgd_color_field) ?
+                json[k_bkgd_color_field].get<std::string>() :
+                k_default_bkgd_color,
+
+            json.contains(k_color_field) ?
+                json[k_color_field].get<std::string>():
+                k_default_color,
+
+            json.contains(k_blend_field) ?
+                json[k_blend_field].get<std::string>() :
+                k_default_blend
         };
     }
 

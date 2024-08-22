@@ -8,7 +8,7 @@
   ],
   "resolution" : 3000,
   "iterations": 3,
-  "antialiasing_level": 3,
+  "antialiasing-level": 3,
   "out-file": "square_3iters.png",
   "colors": [ "#000000", "#444444", "#AAAAAA", "#FFD700" ],
   "view": [ -10, -10, 10, 10 ]

@@ -215,18 +215,30 @@ void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circle
     std::stringstream ss;
 
     ss << std::format(
-        "<svg style=\"{}\" viewBox=\"{} {} {} {}\" xmlns=\"http://www.w3.org/2000/svg\">\n",
-        "stroke-width: 1px; background-color: white;",
+        "<svg viewBox=\"{} {} {} {}\" xmlns=\"http://www.w3.org/2000/svg\">\n",
         dimensions.min.x,
         dimensions.min.y,
         dimensions.max.x - dimensions.min.x,
         dimensions.max.y - dimensions.min.y
     );
+    ss << std::format("<style> circle {{ mix-blend-mode: {}; }} </style>\n", settings.blend_mode);
+
+    ss << std::format(
+        "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" fill=\"{}\" />\n",
+        dimensions.min.x,
+        dimensions.min.y,
+        dimensions.max.x - dimensions.min.x,
+        dimensions.max.y - dimensions.min.y,
+        settings.bkgd_color
+    );
 
     for (const auto& c : circles) {
         ss << std::format(
-            "    <circle cx=\"{}\" cy=\"{}\" r=\"{}\" fill=\"none\" stroke=\"black\" />\n",
-            c.loc.x, c.loc.y, c.radius
+            "    <circle cx=\"{}\" cy=\"{}\" r=\"{}\" fill=\"{}\" stroke=\"none\" />\n",
+            c.loc.x, 
+            c.loc.y, 
+            c.radius, 
+            settings.color
         );
     }
 

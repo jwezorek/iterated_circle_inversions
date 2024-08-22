@@ -10,7 +10,7 @@
   ],
   "resolution": 3000,
   "iterations": 3,
-  "antialiasing_level": 3,
+  "antialiasing-level": 3,
   "out-file": "pentagon-blue.png",
   "colors": [ "#03045E", "#0077B6", "#00B4D8", "#90E0Ef", "#CAF0F8" ]
 }

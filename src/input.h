@@ -26,6 +26,9 @@ namespace ici {
     struct vector_settings {
         double scale;
         double padding;
+        std::string bkgd_color;
+        std::string color;
+        std::string blend_mode;
     };
 
     struct input {
