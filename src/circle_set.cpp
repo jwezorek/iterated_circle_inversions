@@ -1,4 +1,5 @@
 #include "circle_set.h"
+#include <boost/functional/hash.hpp>
 #include <ranges>
 
 namespace r = std::ranges;
@@ -6,78 +7,47 @@ namespace rv = std::ranges::views;
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 
-namespace {
-    using box = ici::detail::box;
-    using vec3 = ici::detail::vec3;
+/*------------------------------------------------------------------------------------------------*/
 
-    using rtree = ici::detail::rtree;
-
-    vec3 to_vec3(const ici::circle& c) {
-        return {
-            c.loc.x,
-            c.loc.y,
-            c.radius
-        };
-    }
-
-    box pad_vec3(const vec3& v, double k) {
-        auto x = bg::get<0>(v);
-        auto y = bg::get<1>(v);
-        auto z = bg::get<2>(v);
-        return {
-            {x - k, y - k, z - k},
-            {x + k, y + k, z + k}
-        };
-    }
-
-    double dist(const vec3& v1, const vec3& v2) {
-
-        auto x1 = bg::get<0>(v1);
-        auto y1 = bg::get<1>(v1);
-        auto z1 = bg::get<2>(v1);
-
-        auto x2 = bg::get<0>(v2);
-        auto y2 = bg::get<1>(v2);
-        auto z2 = bg::get<2>(v2);
-
-        auto x_diff = x1 - x2;
-        auto y_diff = y1 - y2;
-        auto z_diff = z1 - z2;
-
-        return std::sqrt(
-            x_diff * x_diff + y_diff * y_diff + z_diff * z_diff
-        );
-    }
-
-    ici::circle to_circle(const vec3& v) {
-        return {
-            {bg::get<0>(v), bg::get<1>(v)},
-            bg::get<2>(v)
-        };
-    }
+bool ici::circle_set::discretized_circle::operator==(const discretized_circle& c) const
+{
+    return x == c.x && y == c.y && r == c.r;
 }
 
-ici::circle_set::circle_set(double eps) : eps_(eps)
+size_t ici::circle_set::hash_discretized_circle::operator()(const discretized_circle& c) const
 {
+    size_t seed = 0;
+    boost::hash_combine(seed, c.x);
+    boost::hash_combine(seed, c.y);
+    boost::hash_combine(seed, c.r);
+    return seed;
+}
+
+ici::circle_set::discretized_circle ici::circle_set::discretize(
+        const circle& c) const {
+
+    auto k = 1.0 / eps_;
+
+    return {
+        static_cast<int64_t>(std::round(k * c.loc.x)),
+        static_cast<int64_t>(std::round(k * c.loc.y)),
+        static_cast<int64_t>(std::round(k * c.radius))
+    };
+}
+
+ici::circle_set::circle_set(double eps) : eps_(eps) {
 }
 
 void ici::circle_set::insert(const circle& c) {
-    std::vector<vec3> results;
-    auto v = to_vec3(c);
-    tree_.query(bgi::intersects(pad_vec3(v, eps_)), std::back_inserter(results));
-    if (results.empty()) {
-        tree_.insert(v);
+    auto key = discretize(c);
+    if (impl_.contains(key)) {
         return;
     }
-    auto is_in_set = [&](auto&& res) {return dist(res, v) <= eps_; };
-    if (r::find_if(results, is_in_set) != results.end()) {
-        return;
-    }
-    tree_.insert(v);
+    impl_[key] = c;
 }
 
 std::vector<ici::circle> ici::circle_set::to_vector() const {
-    return tree_ | rv::transform(to_circle) | r::to<std::vector>();
+    return impl_ | rv::values | r::to<std::vector>();
 }
 
 double ici::circle_set::eps() const {
@@ -85,9 +55,9 @@ double ici::circle_set::eps() const {
 }
 
 bool ici::circle_set::empty() const {
-    return tree_.empty();
+    return impl_.empty();
 }
 
 size_t ici::circle_set::size() const {
-    return tree_.size();
+    return impl_.size();
 }

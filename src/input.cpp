@@ -14,7 +14,7 @@ namespace {
 
     using json = nlohmann::json;
 
-    constexpr auto k_epsilon = 0.0001;
+    constexpr auto k_epsilon = 1e-5;
     constexpr auto k_num_iterations = 2;
     constexpr auto k_default_res = 2048;
     constexpr auto k_default_aa_level = 0;

@@ -8,22 +8,33 @@
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/register/point.hpp>
 
-namespace ici {
+/*------------------------------------------------------------------------------------------------*/
 
-    namespace detail {
-        using vec3 = boost::geometry::model::point<double, 3, boost::geometry::cs::cartesian>;
-        using box = boost::geometry::model::box<vec3>;
-        using rtree = boost::geometry::index::rtree<vec3, boost::geometry::index::quadratic<16>>;
-    }
+namespace ici {
 
     class circle_set {
 
-        detail::rtree tree_;
+        struct discretized_circle {
+            int64_t x;
+            int64_t y;
+            int64_t r;
+
+            bool operator==(const discretized_circle& c) const;
+        };
+
+        struct hash_discretized_circle {
+            size_t operator()(const discretized_circle& c) const;
+        };
+
+        discretized_circle discretize(const circle& c) const;
+
+        std::unordered_map<discretized_circle, ici::circle, hash_discretized_circle> impl_;
         double eps_;
 
     public:
         circle_set(double eps);
-        circle_set(double eps, std::ranges::forward_range auto circles) : circle_set(eps) {
+        circle_set(double eps, std::ranges::forward_range auto circles) : 
+                circle_set(eps) {
             for (auto&& c : circles) {
                 insert(c);
             }
