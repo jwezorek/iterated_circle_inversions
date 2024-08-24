@@ -13,6 +13,19 @@ namespace {
         auto [x, y] = pt;
         return { x,y };
     }
+
+    bool circle_contains_pt(const ici::circle& c, const ici::point& pt) {
+        return distance(c.loc, pt) <= c.radius;
+    }
+
+    std::array<ici::point, 4> vertices(const ici::rectangle& r) {
+        return {
+            r.min,
+            {r.max.x, r.min.y},
+            r.max,
+            {r.min.x, r.max.y}
+        };
+    }
 }
 
 ici::rectangle ici::bounds(const circle& c) {
@@ -27,6 +40,45 @@ ici::circle ici::scale(const circle& c, double k) {
         {k * c.loc.x, k * c.loc.y},
         k * c.radius
     };
+}
+
+bool ici::circle_rectangle_intersection(const ici::circle& c, const ici::rectangle& r) {
+    // from here: https://stackoverflow.com/a/402010/1413244
+
+    auto circle_dist_x = std::abs(c.loc.x - r.min.x);
+    auto circle_dist_y = std::abs(c.loc.y - r.min.y);
+
+    auto r_width = r.max.x - r.min.x;
+    auto r_height = r.max.y - r.min.y;
+
+    if (circle_dist_x > (r_width / 2.0 + c.radius)) { 
+        return false; 
+    }
+    if (circle_dist_y > (r_height / 2.0 + c.radius)) { 
+        return false; 
+    }
+
+    if (circle_dist_x <= (r_width / 2.0)) { 
+        return true; 
+    }
+    if (circle_dist_y <= (r_height / 2.0)) { 
+        return true; 
+    }
+
+    auto x_diff = circle_dist_x - r_width / 2.0;
+    auto y_diff = circle_dist_y - r_height / 2.0;
+    auto corner_dist_squ = x_diff * x_diff + y_diff * y_diff;
+
+    return corner_dist_squ <= c.radius * c.radius;
+
+}
+
+bool ici::circle_contains_rectangle(const ici::circle& c, const ici::rectangle& r) {
+    auto verts = vertices(r);
+    auto does_not_contain_vert = [&](auto&& vert) {
+        return !circle_contains_pt(c, vert);
+    };
+    return r::find_if( verts, does_not_contain_vert ) == verts.end();
 }
 
 std::optional<ici::circle> ici::circle_through_three_points(

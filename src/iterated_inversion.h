@@ -20,4 +20,7 @@ namespace ici {
 
     void to_raster(const std::string& outp, const std::vector<circle>& circles,
         const raster_settings& settings);
+
+    void to_raster2(const std::string& outp, const std::vector<circle>& circles,
+        const raster_settings& settings);
 }

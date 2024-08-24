@@ -3,12 +3,14 @@
 #include "circle_set.h"
 #include "input.h"
 #include "util.h"
+#include "image.h"
 #include <opencv2/opencv.hpp>
 #include <print>
 #include <sstream>
 #include <ranges>
 #include <complex>
 #include <filesystem>
+#include <bit>
 
 namespace fs = std::filesystem;
 namespace r = std::ranges;
@@ -291,4 +293,27 @@ void ici::to_raster(const std::string& outp,
     }
 
     cv::imwrite(outp, image);
+}
+
+void ici::to_raster2( const std::string& outp, 
+        const std::vector<circle>& circles, const raster_settings& settings) {
+
+    rectangle view_rect = settings.view ? *settings.view : bounds(circles);
+    auto [cols, rows, logical_to_image] = image_metrics(
+        view_rect.min, view_rect.max, 1.0, settings.resolution
+    );
+    auto canvas_sz = std::bit_ceil(static_cast<unsigned>(std::max(cols, rows)));
+    ici::image img(cols, rows);
+    for (int y = 0; y < rows; ++y) {
+        for (int x = 0;x < rows; ++x) {
+            int x_diff = x - 100;
+            int y_diff = y - 100;
+            if (x_diff * x_diff + y_diff * y_diff <= 50 * 50) {
+                img(x, y) = 0xFF0000FF;
+            } else {
+                img(x, y) = 0xFFFFFFFF;
+            }
+        }
+    }
+    ici::write_to_file(outp, img);
 }

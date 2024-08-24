@@ -20,8 +20,10 @@ add_executable(iterated_circle_inversions
     src/main.cpp
     src/util.cpp
     src/circle_set.cpp
+    src/circle_tree.cpp
     src/input.cpp
     src/geometry.cpp
+    src/image.cpp
 )
 
 target_link_libraries(iterated_circle_inversions ${OpenCV_LIBS})
