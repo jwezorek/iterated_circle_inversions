@@ -37,3 +37,13 @@ std::vector<ici::circle> ici::circle_tree::intersects(const ici::rectangle& r) c
             }
         ) | r::to<std::vector>();
 }
+
+std::vector<ici::circle> ici::circle_tree::contains(const ici::point& pt) const {
+    std::vector<rtree_value> results;
+    impl_.query(bgi::intersects(bg::make<vec2>(pt.x,pt.y)), std::back_inserter(results));
+    return results | rv::values | rv::filter(
+        [&](const circle& c) {
+            return ici::circle_contains_pt(c, pt);
+        }
+    ) | r::to<std::vector>();
+}

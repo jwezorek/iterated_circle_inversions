@@ -13,7 +13,7 @@ namespace rv = std::ranges::views;
 /*------------------------------------------------------------------------------------------------*/
 
 
-ici::image::image(int cols, int rows) : cols_(cols), rows_(rows), impl_(cols* rows)
+ici::image::image(int cols, int rows) : cols_(cols), rows_(rows), impl_(cols * rows)
 {}
 
 uint32_t& ici::image::operator()(int x, int y) {

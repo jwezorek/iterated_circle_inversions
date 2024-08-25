@@ -6,6 +6,7 @@
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/register/point.hpp>
 #include <vector>
+#include <ranges>
 
 namespace ici {
 
@@ -19,8 +20,15 @@ namespace ici {
 
     public:
         circle_tree();
+        circle_tree(std::ranges::forward_range auto circles) {
+            for (auto&& c : circles) {
+                insert(c);
+            }
+        }
+
         void insert(const ici::circle& c);
         std::vector<ici::circle> intersects(const ici::rectangle& r) const;
+        std::vector<ici::circle> contains(const ici::point& pt) const;
     };
 
 }

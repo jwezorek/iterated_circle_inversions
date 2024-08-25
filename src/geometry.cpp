@@ -14,10 +14,6 @@ namespace {
         return { x,y };
     }
 
-    bool circle_contains_pt(const ici::circle& c, const ici::point& pt) {
-        return distance(c.loc, pt) <= c.radius;
-    }
-
     std::array<ici::point, 4> vertices(const ici::rectangle& r) {
         return {
             r.min,
@@ -45,32 +41,29 @@ ici::circle ici::scale(const circle& c, double k) {
 bool ici::circle_rectangle_intersection(const ici::circle& c, const ici::rectangle& r) {
     // from here: https://stackoverflow.com/a/402010/1413244
 
-    auto circle_dist_x = std::abs(c.loc.x - r.min.x);
-    auto circle_dist_y = std::abs(c.loc.y - r.min.y);
+    auto rect_cen = centroid(r);
+    auto half_rect_width = (r.max.x - r.min.x) / 2.0;
+    auto half_rect_height = (r.max.y - r.min.y) / 2.0;
+    auto circle_dist_x = std::abs(rect_cen.x - c.loc.x);
+    auto circle_dist_y = std::abs(rect_cen.y - c.loc.y);
 
-    auto r_width = r.max.x - r.min.x;
-    auto r_height = r.max.y - r.min.y;
-
-    if (circle_dist_x > (r_width / 2.0 + c.radius)) { 
-        return false; 
-    }
-    if (circle_dist_y > (r_height / 2.0 + c.radius)) { 
+    if (circle_dist_x > half_rect_width + c.radius || circle_dist_y > half_rect_height + c.radius) { 
         return false; 
     }
 
-    if (circle_dist_x <= (r_width / 2.0)) { 
-        return true; 
-    }
-    if (circle_dist_y <= (r_height / 2.0)) { 
+    if (circle_dist_x <= half_rect_width || circle_dist_y <= half_rect_height) { 
         return true; 
     }
 
-    auto x_diff = circle_dist_x - r_width / 2.0;
-    auto y_diff = circle_dist_y - r_height / 2.0;
+    auto x_diff = circle_dist_x - half_rect_width;
+    auto y_diff = circle_dist_y - half_rect_height;
     auto corner_dist_squ = x_diff * x_diff + y_diff * y_diff;
 
     return corner_dist_squ <= c.radius * c.radius;
+}
 
+bool ici::circle_contains_pt(const ici::circle& c, const ici::point& pt) {
+    return distance(c.loc, pt) <= c.radius;
 }
 
 bool ici::circle_contains_rectangle(const ici::circle& c, const ici::rectangle& r) {
@@ -169,6 +162,30 @@ ici::rectangle ici::pad(const ici::rectangle& r, double padding) {
     return {
         { r.min.x - padding, r.min.y - padding },
         { r.max.x + padding, r.max.y + padding }
+    };
+}
+
+bool ici::intersects(const rectangle& r1, const rectangle& r2) {
+    if (r1.max.x < r2.min.x || r2.max.x < r1.min.x) {
+        return false;
+    }
+
+    if (r1.max.y < r2.min.y || r2.max.y < r1.min.y) {
+        return false;
+    }
+
+    return true;
+}
+
+bool ici::contains(const ici::rectangle& r, const ici::point& pt) {
+    return pt.x >= r.min.x && pt.x <= r.max.x &&
+        pt.y >= r.min.y && pt.y <= r.max.y;
+}
+
+ici::point ici::centroid(const rectangle& r) {
+    return {
+        (r.min.x + r.max.x) / 2.0,
+        (r.min.y + r.max.y) / 2.0
     };
 }
 

@@ -5,19 +5,24 @@
 
 namespace ici {
 
-    struct point {
-        double x;
-        double y;
+    template<typename T>
+    struct point_type {
+        T x;
+        T y;
     };
+
+    template<typename T>
+    struct rect_type {
+        point_type<T> min;
+        point_type<T> max;
+    };
+
+    using point = point_type<double>;
+    using rectangle = rect_type<double>;
 
     struct circle {
         point loc;
         double radius;
-    };
-
-    struct rectangle {
-        point min;
-        point max;
     };
 
     point operator+(const point& lhs, const point& rhs);
@@ -28,9 +33,13 @@ namespace ici {
     rectangle bounds(const circle& c);
     rectangle bounds(const std::vector<circle>& circles);
     rectangle pad(const rectangle& r, double padding);
+    bool intersects(const rectangle& r1, const rectangle& r2);
+    bool contains(const rectangle& r1, const point& pt);
+    point centroid(const rectangle& r);
 
     circle scale(const circle& c, double k);
     bool circle_rectangle_intersection(const circle& c, const rectangle& r);
+    bool circle_contains_pt(const circle& c, const point& pt);
     bool circle_contains_rectangle(const circle& c, const rectangle& r);
 
     std::optional<circle> invert(const circle& c, const circle& invertee);
