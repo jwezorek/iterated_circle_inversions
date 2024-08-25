@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
                 std::get<ici::vector_settings>(input->output_settings)
             );
         } else {
-            ici::to_raster2(input->out_file, circles, 
+            ici::to_raster(input->out_file, circles, 
                 std::get<ici::raster_settings>(input->output_settings)
             );
         }

@@ -322,7 +322,7 @@ void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circle
     string_to_file(fname, ss.str());
 }
 
-void ici::to_raster2( const std::string& outp, 
+void ici::to_raster( const std::string& outp, 
         const std::vector<circle>& inp, const raster_settings& settings) {
 
     rectangle view_rect = settings.view ? *settings.view : bounds(inp);
