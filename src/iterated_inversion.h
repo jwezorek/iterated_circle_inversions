@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 #include "image.h"
+#include "geometry.h"
 
 /*------------------------------------------------------------------------------------------------*/
 
@@ -19,6 +20,6 @@ namespace ici {
     void to_svg(const std::string& fname, const std::vector<circle>& circles,
         const vector_settings& settings);
 
-    ici::image to_raster(const std::string& outp, const std::vector<circle>& circles,
-        const raster_settings& settings);
+    ici::image to_raster(const std::string& outp, const rectangle& view_rect,
+        const std::vector<circle>& inp, const raster_settings& settings);
 }

@@ -52,9 +52,13 @@ int main(int argc, char* argv[]) {
         } else {
             std::println("rasterizing {} circles...",  circles.size());
 
-            auto img = ici::to_raster(input->out_file, circles, 
-                    std::get<ici::raster_settings>(input->output_settings)
-                );
+            const auto& settings = std::get<ici::raster_settings>(input->output_settings);
+            ici::rectangle view_rect = settings.view ? *settings.view : ici::bounds(circles);
+            std::println("  view rect: [ {}, {}, {}, {} ]",
+                view_rect.min.x, view_rect.min.y, view_rect.max.x, view_rect.max.y
+            );
+
+            auto img = ici::to_raster(input->out_file, view_rect, circles, settings);
             std::println("serializing to {} format ({})...",
                 fs::path(fname).extension().string(),
                 fname

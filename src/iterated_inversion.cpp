@@ -56,29 +56,29 @@ namespace {
     }
 
     std::tuple<int, int, double> image_metrics(
-        ici::point min_pt, ici::point max_pt, int scale, int resolution) {
+        ici::point min_pt, ici::point max_pt, int resolution) {
 
         double wd = max_pt.x - min_pt.x;
         double hgt = max_pt.y - min_pt.y;
         double cols = 0.0;
         double rows = 0.0;
-        double log_to_image = 0.0;
+        double image_to_log = 0.0;
 
         if (wd > hgt) {
             cols = resolution;
             rows = std::ceil((hgt * static_cast<double>(cols)) / wd);
-            log_to_image = static_cast<double>(cols) / wd;
-        }
-        else {
+            image_to_log = wd / static_cast<double>(cols);
+        } else {
             rows = resolution;
             cols = std::ceil((wd * static_cast<double>(rows)) / hgt);
-            log_to_image = static_cast<double>(rows) / hgt;
+            image_to_log = hgt / static_cast<double>(rows);
         }
 
         return {
-            scale * static_cast<int>(cols),
-            scale * static_cast<int>(rows),
-            scale * log_to_image };
+            static_cast<int>(cols),
+            static_cast<int>(rows),
+            image_to_log 
+        };
     }
 
     struct raster_context {
@@ -347,18 +347,17 @@ void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circle
     string_to_file(fname, ss.str());
 }
 
-ici::image ici::to_raster( const std::string& outp, 
+ici::image ici::to_raster( const std::string& outp, const rectangle& view_rect,
         const std::vector<circle>& inp, const raster_settings& settings) {
 
-    rectangle view_rect = settings.view ? *settings.view : bounds(inp);
-    auto [cols, rows, logical_to_image] = image_metrics(
-        view_rect.min, view_rect.max, 1.0, settings.resolution
+    auto [cols, rows, image_to_logical] = image_metrics(
+        view_rect.min, view_rect.max, settings.resolution
     );
 
     raster_context ctxt = {
         .circles = {inp},
         .view = view_rect,
-        .img_to_log = 1.0 / logical_to_image,
+        .img_to_log = image_to_logical,
         .canvas_sz = static_cast<int>(
                 std::bit_ceil(static_cast<unsigned>(std::max(cols, rows)))
             ),
