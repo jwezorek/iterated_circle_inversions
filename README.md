@@ -8,9 +8,9 @@ The basic idea is the following:
 * Repeat *n* times:
   * Let S2 be an empty set of circles
   * For each combination [a,b] of circes in S:
-    * Add a and b to S2 if they are not already in S2
-    * Let c be a inverted about b, and let d be b inverted about a.
-    * Add c and d to S2 if they are not already in S2.
+    * Add *a* and *b* to S2 if they are not already in S2
+    * Let *c* be *a* inverted about *b*, and let *d* be *b* inverted about *a*.
+    * Add *c* and *d* to S2 if they are not already in S2.
   * Let S := S2
 
 The above was generated via the following JSON input:
@@ -26,7 +26,7 @@ The above was generated via the following JSON input:
         "iterations": 3,
         "out-file": "square_3iters.png",
         "resolution" : 3000,
-        "antialiasing_level": 3,
+        "antialiasing-level": 3,
         "colors": [ "#000000", "#444444", "#AAAAAA", "#FFD700" ],
         "view": [ -10, -10, 10, 10 ]
     }
@@ -36,5 +36,5 @@ The above was generated via the following JSON input:
 * out-file: Pathname of the output file. The extension determines whether we are outputting a raster file or exporting SVG.
 * resolution: (raster output only) size in pixels of the longest dimension of the raster image that will be created i.e. if the logical image is 5.0 units wide by 2.5 units high and resolution is 1000 then the width of the generated image will be 1000 pixels and the height will be 500 pixels.
 * antialiasing_level: (raster output only) must be [0..3]. Zero means don't antialias. Three means AA alot but will cause rasterization to be slower.
-* colors: (raster output only) color table. The color of a given segment in the number of circles that contain that segment modulo the number of colors.
+* colors: (raster output only) color table. The color of a given segment is the *k*th color, where *k* is the number of circles that contain that segment modulo the number of colors.
 * view:  (raster output only) region in unscaled logical units, i.e. in the same units as the seeds, of the region to rasterize.
