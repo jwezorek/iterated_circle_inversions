@@ -166,7 +166,29 @@ namespace {
         }
     }
 
-    void rasterize_rect(const raster_context& ctxt, ici::image& img, const rect& rect) {
+    struct progress {
+        int total;
+        int last_reported;
+        int curr;
+    };
+
+    void update_progress(progress& prog, int n) {
+        int old_pcnt = static_cast<int>(100 * static_cast<double>(prog.curr) / prog.total);
+        prog.curr += n;
+        int pcnt = static_cast<int>((100.0 * static_cast<double>(prog.curr)) / prog.total);
+        if (pcnt - prog.last_reported > 5) {
+            std::println("  {}% complete...", pcnt);
+            prog.last_reported = pcnt;
+        }
+    }
+
+    void finalize_progress(const progress& prog) {
+        if (prog.last_reported != 100) {
+            std::println("  100% complete...\n");
+        }
+    }
+
+    void rasterize_rect(const raster_context& ctxt, ici::image& img, const rect& rect, progress& prog) {
 
         auto log_rect = canvas_rect_to_logical_rect(ctxt, rect);
         if (!ici::intersects(log_rect, ctxt.view)) {
@@ -175,6 +197,7 @@ namespace {
 
         if (rect.min.x == rect.max.x && rect.min.y == rect.max.y) {
             rasterize_pixel(ctxt, img, rect.min.x, rect.min.y);
+            update_progress(prog, 1);
             return;
         }
 
@@ -183,6 +206,10 @@ namespace {
         auto count = containing_circle_count(ctxt.circles, log_rect);
         if (count) {
             fill_rect(img, rect, to_uint32(ctxt.colors.at(*count % ctxt.colors.size())));
+            update_progress(
+                prog, 
+                (rect.max.x - rect.min.x + 1) * (rect.max.y - rect.min.y + 1)
+            );
             return;
         }
 
@@ -201,7 +228,7 @@ namespace {
         } };
 
         for (const auto& quadrant : quadrants) {
-            rasterize_rect(ctxt, img, quadrant);
+            rasterize_rect(ctxt, img, quadrant, prog);
         }
     }
 
@@ -271,9 +298,7 @@ std::vector<ici::circle> ici::invert_circles(const ici::input& inp)
         output = circle_set_union(output, curr);
     }
 
-    std::println("complete.\ngenerating {} ...\n", 
-        fs::path(inp.out_file).filename().string()
-    );
+    std::println("complete.");
 
     return (!output.empty()) ? output.to_vector() : inp.circles;
 }
@@ -322,7 +347,7 @@ void ici::to_svg(const std::string& fname, const std::vector<circle>& inp_circle
     string_to_file(fname, ss.str());
 }
 
-void ici::to_raster( const std::string& outp, 
+ici::image ici::to_raster( const std::string& outp, 
         const std::vector<circle>& inp, const raster_settings& settings) {
 
     rectangle view_rect = settings.view ? *settings.view : bounds(inp);
@@ -340,9 +365,10 @@ void ici::to_raster( const std::string& outp,
         .antialiasing_level = settings.antialiasing_level,
         .colors = settings.color_tbl
     };
-
+    progress prog{ ctxt.canvas_sz * ctxt.canvas_sz, 0, 0 };
     ici::image img(cols, rows);
-    rasterize_rect(ctxt, img, {{0,0},{ctxt.canvas_sz - 1, ctxt.canvas_sz - 1}} );
+    rasterize_rect( ctxt, img, {{0,0},{ctxt.canvas_sz - 1, ctxt.canvas_sz - 1}}, prog );
+    finalize_progress(prog);
     
-    ici::write_to_file(outp, img);
+    return img;
 }
