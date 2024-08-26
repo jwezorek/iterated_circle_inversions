@@ -107,7 +107,7 @@ namespace {
         return v;
     }
 
-    uint32_t to_uint32(const ici::color& color) {
+    uint32_t to_pixel(const ici::color& color) {
         return (0xFF << 24) | (color.r << 16) | (color.g << 8) | color.b;
     }
 
@@ -140,7 +140,7 @@ namespace {
                 static_cast<uint8_t>(std::round(green / area)),
                 static_cast<uint8_t>(std::round(blue / area))
         };
-        img(col, row) = to_uint32(pixel);
+        img(col, row) = to_pixel(pixel);
     }
 
     std::optional<int> containing_circle_count(const ici::circle_tree& tree, const ici::rectangle& r) {
@@ -188,7 +188,8 @@ namespace {
         }
     }
 
-    void rasterize_rect(const raster_context& ctxt, ici::image& img, const rect& rect, progress& prog) {
+    void rasterize_rect(
+            const raster_context& ctxt, ici::image& img, const rect& rect, progress& prog) {
 
         auto log_rect = canvas_rect_to_logical_rect(ctxt, rect);
         if (!ici::intersects(log_rect, ctxt.view)) {
@@ -205,7 +206,7 @@ namespace {
         // then fill in this rectangle.
         auto count = containing_circle_count(ctxt.circles, log_rect);
         if (count) {
-            fill_rect(img, rect, to_uint32(ctxt.colors.at(*count % ctxt.colors.size())));
+            fill_rect(img, rect, to_pixel(ctxt.colors.at(*count % ctxt.colors.size())));
             update_progress(
                 prog, 
                 (rect.max.x - rect.min.x + 1) * (rect.max.y - rect.min.y + 1)
@@ -232,51 +233,50 @@ namespace {
         }
     }
 
-}
-
-void invert_and_insert(ici::circle_set& set, const ici::circle& lhs, const ici::circle& rhs) {
-    auto inversion = ici::invert(lhs, rhs);
-    if (inversion) {
-        set.insert(*inversion);
+    void invert_and_insert(ici::circle_set& set, const ici::circle& lhs, const ici::circle& rhs) {
+        auto inversion = ici::invert(lhs, rhs);
+        if (inversion) {
+            set.insert(*inversion);
+        }
     }
-}
 
-ici::circle_set all_inversions(const ici::circle_set& set) {
-    ici::circle_set output(set.eps());
-    auto circles = set.to_vector();
-    for (const auto& [c1, c2] : ici::two_combinations(circles)) {
-        invert_and_insert(output, c1, c2);
-        invert_and_insert(output, c2, c1);
-    }
-    return output;
-}
-
-ici::circle_set inverse_of_cartesian_product(
-        const ici::circle_set& lhs, const ici::circle_set& rhs) {
-
-    ici::circle_set output(lhs.eps());
-
-    if (lhs.empty() || rhs.empty()) {
+    ici::circle_set all_inversions(const ici::circle_set& set) {
+        ici::circle_set output(set.eps());
+        auto circles = set.to_vector();
+        for (const auto& [c1, c2] : ici::two_combinations(circles)) {
+            invert_and_insert(output, c1, c2);
+            invert_and_insert(output, c2, c1);
+        }
         return output;
     }
 
-    auto lhs_circles = lhs.to_vector();
-    auto rhs_circles = rhs.to_vector();
-    for (const auto& [c1, c2] : rv::cartesian_product(lhs_circles, rhs_circles)) {
-        invert_and_insert(output, c1, c2);
-        invert_and_insert(output, c2, c1);
+    ici::circle_set inverse_of_cartesian_product(
+            const ici::circle_set& lhs, const ici::circle_set& rhs) {
+
+        ici::circle_set output(lhs.eps());
+
+        if (lhs.empty() || rhs.empty()) {
+            return output;
+        }
+
+        auto lhs_circles = lhs.to_vector();
+        auto rhs_circles = rhs.to_vector();
+        for (const auto& [c1, c2] : rv::cartesian_product(lhs_circles, rhs_circles)) {
+            invert_and_insert(output, c1, c2);
+            invert_and_insert(output, c2, c1);
+        }
+
+        return output;
     }
 
-    return output;
-}
-
-ici::circle_set circle_set_union(const ici::circle_set& lhs, const ici::circle_set& rhs) {
-    ici::circle_set output(lhs.eps(), lhs.to_vector());
-    auto rhs_circles = rhs.to_vector();
-    for (auto&& c : rhs_circles) {
-        output.insert(c);
+    ici::circle_set circle_set_union(const ici::circle_set& lhs, const ici::circle_set& rhs) {
+        ici::circle_set output(lhs.eps(), lhs.to_vector());
+        auto rhs_circles = rhs.to_vector();
+        for (auto&& c : rhs_circles) {
+            output.insert(c);
+        }
+        return output;
     }
-    return output;
 }
 
 std::vector<ici::circle> ici::invert_circles(const ici::input& inp)
@@ -286,6 +286,7 @@ std::vector<ici::circle> ici::invert_circles(const ici::input& inp)
     circle_set output(inp.eps);
     circle_set prev(inp.eps);
     circle_set curr(inp.eps, inp.circles);
+
     for (int i : rv::iota(0, inp.iterations)) {
         auto new_inversions = circle_set_union(
             all_inversions(curr), inverse_of_cartesian_product(prev, curr)
