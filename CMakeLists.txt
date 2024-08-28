@@ -9,6 +9,12 @@ if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS}) 
 endif()
 
+# Find OpenCV package
+find_package(OpenCV REQUIRED)
+
+# Include directories
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 add_executable(iterated_circle_inversions
     src/iterated_inversion.cpp
     src/main.cpp
