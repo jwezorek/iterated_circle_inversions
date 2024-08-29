@@ -40,7 +40,7 @@ std::vector<ici::circle> interpolate(const std::vector<ici::circle>& from, const
     for (const auto& [c1, c2] : rv::zip(from, to)) {
         output.push_back({
             {interp(c1.loc.x, c2.loc.x, t), interp(c1.loc.y, c2.loc.y, t)},
-            interp(c1.radius, c1.radius, t)
+            interp(c1.radius, c2.radius, t)
             }
         );
     }
@@ -59,44 +59,55 @@ cv::Mat image_to_mat(const ici::image& img) {
 }
 
 int main(int argc, char* argv[]) {
+    
+    auto start = ici::parse_input("D:\\test\\hex.json");
+    auto end = ici::parse_input("D:\\test\\pyramid.json");
+    int resolution = 320;
 
-    auto start = ici::parse_input("D:\\test\\pentagon.json");
-    auto end = ici::parse_input("D:\\test\\test.json");
+    auto start_rect = *std::get<ici::raster_settings>(start->output_settings).view;
+    auto end_rect = *std::get<ici::raster_settings>(end->output_settings).view;
 
-    auto start_rect = ici::bounds(start->circles);
-    auto end_rect = ici::bounds(end->circles);
+
+    auto end_circles = interpolate(start->circles, end->circles, 0.10);
+    end_rect = interpolate_rect(start_rect, end_rect, 0.10);
+
     auto rast_settings = std::get<ici::raster_settings>(start->output_settings);
-    rast_settings.resolution = 640;
+    rast_settings.resolution = resolution;
+    rast_settings.antialiasing_level = 2;
 
     // Set the video output properties
-    int frame_width = 640;
-    int frame_height = 640;
+    int frame_width = resolution;
+    int frame_height = resolution;
     int fps = 24;
 
-    int num_frames = fps * 30;
+    int num_frames = fps * 20;
 
     // Create a VideoWriter object
-    cv::VideoWriter video("D:/test/pentagon2.avi",
+    cv::VideoWriter video("D:/test/hex_20pcnt.avi",
         cv::VideoWriter::fourcc('M', 'J', 'P', 'G'),
         fps,
         cv::Size(frame_width, frame_height));
 
     // Generate frames and write them to the video
-    for (int i = 0; i < num_frames; ++i) {
+    for (int i = 0; i <= num_frames; ++i) {
         std::println("frame {} of {}", i, num_frames);
         auto t = static_cast<double>(i) / static_cast<double>(num_frames);
-        auto circles = interpolate(start->circles, end->circles, t);
-        auto rect = interpolate_rect(start_rect, end_rect, t);
+        auto circles = interpolate(start->circles, end_circles, t);
+
+        ici::rectangle rect = interpolate_rect(start_rect, end_rect, t);
+
         auto inp = *start;
         inp.circles = circles;
+        inp.iterations = 2;
         circles = ici::invert_circles(inp);
        
         auto img = ici::to_raster("", rect, circles, rast_settings);
         auto mat = image_to_mat(img);
-        if (mat.cols > 640 || mat.rows > 640) {
-            int x = (mat.cols - 640) / 2;
-            int y = (mat.rows - 640) / 2;
-            mat = mat(cv::Rect(x, y, 640, 640)).clone();
+
+        if (mat.cols > resolution || mat.rows > resolution) {
+            int x = (mat.cols - resolution) / 2;
+            int y = (mat.rows - resolution) / 2;
+            mat = mat(cv::Rect(x, y, resolution, resolution)).clone();
         }
         
         video.write(mat);
@@ -104,8 +115,11 @@ int main(int argc, char* argv[]) {
 
     // Release the video writer
     video.release();
+}
 
-    /*
+/*
+int main(int argc, char* argv[]) {
+
     try {
         auto input = parse_cmd_line(argc, argv);
         if (!input.has_value()) {
@@ -119,12 +133,13 @@ int main(int argc, char* argv[]) {
         if (std::holds_alternative<ici::vector_settings>(input->output_settings)) {
             std::println("serializing circles to svg ({})...", fname);
             ici::to_svg(
-                input->out_file, 
-                circles, 
+                input->out_file,
+                circles,
                 std::get<ici::vector_settings>(input->output_settings)
             );
-        } else {
-            std::println("rasterizing {} circles...",  circles.size());
+        }
+        else {
+            std::println("rasterizing {} circles...", circles.size());
 
             const auto& settings = std::get<ici::raster_settings>(input->output_settings);
             ici::rectangle view_rect = settings.view ? *settings.view : ici::bounds(circles);
@@ -143,12 +158,14 @@ int main(int argc, char* argv[]) {
         std::println("complete.");
         return 0;
 
-    } catch (std::runtime_error e) {
+    }
+    catch (std::runtime_error e) {
         std::println("error : {}", e.what());
-    } catch (...) {
+    }
+    catch (...) {
         std::println("error : {}", "unknown error");
     }
 
     return -1;
-    */
 }
+*/
