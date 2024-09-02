@@ -40,3 +40,7 @@ The above was generated via the following JSON input:
 * antialiasing_level: (raster output only) must be [0..4]. Zero means don't antialias. Four means AA alot, each channel of an anti-aliased pixel will be accurate to the full 256 value range, but will cause rasterization to be slower.
 * colors: (raster output only) color table. The color of a given segment is the *k*th color, where *k* is the number of circles that contain that segment modulo the number of colors.
 * view:  (raster output only) region in unscaled logical units, i.e. in the same units as the seeds, of the region to rasterize.
+
+more output below
+![sample output](http://jwezorek.com/wp-content/uploads/2024/09/hex.png)
+![sample output](http://jwezorek.com/wp-content/uploads/2024/09/pentagon-blue.png)
