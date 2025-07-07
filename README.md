@@ -1,5 +1,5 @@
 # iterated_circle_inversions
-![sample output](http://jwezorek.com/wp-content/uploads/2024/08/square_new.png)
+![sample output](https://github.com/user-attachments/assets/14896de8-ccb9-490d-b3f4-406120cf0dc1)
 Command line tool for generating images of iterated circle inversions. 
 
 The code is C++23 with a dependency on Boost for boost::hash_combine and the R-tree implementation in Boost.Geometry, but no other dependencies e.g. I currently serialize to raster files using only stb-image-write.h.
